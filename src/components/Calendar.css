@@ -1,9 +1,13 @@
+/* ===== CONTENIDOR PRINCIPAL (Dark Mode) ===== */
 .calendar-container {
-  max-width: 1400px;
-  margin: 20px auto;
-  padding: 20px;
+  min-height: 100vh;
+  background: #1A1A2E; /* Fons fosc principal */
+  color: white;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* ===== CAPÇALERA ===== */
 .calendar-header {
   display: flex;
   justify-content: space-between;
@@ -13,243 +17,142 @@
 
 .calendar-header h2 {
   margin: 0;
-  color: #333;
+  color: white; /* Text blanc */
   font-size: 28px;
+  font-weight: 600;
 }
 
+/* Botó de tornar, estil "ghost" fosc */
 .btn-back {
   padding: 10px 20px;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 8px;
+  background-color: transparent;
+  color: #c0c0e0; /* Color gris/lila suau */
+  border: 2px solid #3a3a63; /* Vora del color dels botons */
+  border-radius: 12px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.3s;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .btn-back:hover {
-  background-color: #5a6268;
+  background-color: #3a3a63; /* Color de botó (hover) */
+  color: white;
 }
 
 .loading {
   text-align: center;
   margin-top: 50px;
   font-size: 18px;
-  color: #666;
+  color: white; /* Text blanc */
 }
 
-/* Navegació setmanal */
-.week-navigation {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 30px;
-  overflow-x: auto;
-  padding-bottom: 10px;
-}
-
-.day-card {
-  flex: 1;
-  min-width: 120px;
-  background: white;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 15px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.day-card:hover {
-  border-color: #007bff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
-}
-
-.day-card.selected {
-  border-color: #007bff;
-  background-color: #e3f2fd;
-}
-
-.day-card.today {
-  border-color: #28a745;
-}
-
-.day-name {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 5px;
-  text-transform: capitalize;
-}
-
-.day-number {
-  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 5px;
-}
-
-.day-classes-count {
-  font-size: 12px;
-  color: #999;
-}
-
-/* Classes del dia seleccionat */
-.day-classes {
-  margin-bottom: 30px;
-}
-
-.day-classes h3 {
-  color: #333;
-  margin-bottom: 20px;
-  text-transform: capitalize;
-}
-
-.no-classes {
-  text-align: center;
-  color: #999;
-  padding: 40px;
-  background: #f9f9f9;
-  border-radius: 12px;
-}
-
-.classes-timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.timeline-class {
-  display: flex;
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.3s;
-  border: 2px solid transparent;
-}
-
-.timeline-class:hover {
-  transform: translateX(5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.timeline-class.booked {
-  border-color: #28a745;
-}
-
-.timeline-time {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-  min-width: 80px;
-  padding-right: 20px;
-}
-
-.timeline-content {
-  flex: 1;
-}
-
-.timeline-content h4 {
-  margin: 0 0 5px 0;
-  color: #333;
-  font-size: 18px;
-}
-
-.timeline-trainer {
-  margin: 0 0 10px 0;
-  color: #666;
-  font-size: 14px;
-}
-
-.timeline-meta {
-  display: flex;
-  gap: 15px;
-  font-size: 13px;
-  color: #777;
-}
-
-.booked-label {
-  color: #28a745;
-  font-weight: bold;
-}
-
-/* Vista de graella setmanal */
+/* ===== GRAELLA DEL CALENDARI ===== */
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 15px;
+  /* 7 columnes per 7 dies */
+  grid-template-columns: repeat(7, 1fr); 
+  gap: 12px;
 }
 
-.calendar-day-column {
-  background: white;
+/* Adaptació per a mòbils (mostra 1 dia i scroll horitzontal) */
+@media (max-width: 900px) {
+  .calendar-grid {
+    /* Canvia a flex per scroll horitzontal */
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 16px;
+    padding-bottom: 20px; /* Espai per la barra de scroll */
+  }
+  .day-column {
+    /* Cada columna ocupa gairebé tota la pantalla */
+    flex: 0 0 85%;
+    scroll-snap-align: start;
+  }
+}
+
+.day-column {
+  /* Hem tret el fons blanc, ara és transparent */
   border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden; /* Per mantenir els fills dins */
+  display: flex;
+  flex-direction: column;
 }
 
 .column-header {
-  background: #f8f9fa;
-  padding: 15px;
+  /* Fons fosc de targeta */
+  background: #2C2C4E; 
+  padding: 12px 10px;
   text-align: center;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid #3a3a63; /* Separador lleugerament més clar */
+  border-radius: 12px 12px 0 0;
 }
 
 .column-day {
-  font-size: 12px;
-  color: #666;
-  text-transform: capitalize;
-  margin-bottom: 3px;
+  color: white; /* Text blanc */
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
 }
 
 .column-date {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
+  color: #c0c0e0; /* Color suau */
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .column-classes {
-  padding: 10px;
+  padding: 10px 8px;
+  /* Fons de la columna (lleugerament diferent del fons general) */
+  background: #1f1f3d; 
+  border-radius: 0 0 12px 12px;
+  flex-grow: 1;
   min-height: 200px;
 }
 
 .no-classes-day {
   text-align: center;
-  color: #ccc;
+  color: #7a7a9e; /* Color apagat per "sense classes" */
   font-size: 13px;
   padding: 20px 10px;
 }
 
+/* ===== MINI TARGETES DE CLASSE (Dins del calendari) ===== */
 .mini-class-card {
   position: relative;
-  background: #f0f0f0;
+  background: #2C2C4E; /* Fons de targeta fosc */
   border-radius: 8px;
   padding: 10px;
   margin-bottom: 8px;
   cursor: pointer;
   transition: all 0.2s;
-  border: 2px solid transparent;
+  /* Vora del mateix color que el fons (per transició suau) */
+  border: 2px solid #2C2C4E; 
 }
 
 .mini-class-card:hover {
   transform: scale(1.03);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: #3a3a63; /* Mateix hover que els botons de Home */
 }
 
+/* Estil quan la classe està reservada */
 .mini-class-card.booked {
-  border-color: #28a745;
+  border-color: #28a745; /* Vora verda (com abans) */
+  background: #273b31; /* Fons verd fosc per destacar */
 }
 
 .mini-class-time {
   font-size: 11px;
-  color: #666;
+  color: #c0c0e0; /* Color suau */
   font-weight: bold;
   margin-bottom: 4px;
 }
 
 .mini-class-title {
   font-size: 13px;
-  color: #333;
+  color: white; /* Text blanc */
   font-weight: 600;
   margin-bottom: 3px;
   line-height: 1.3;
@@ -257,13 +160,14 @@
 
 .mini-class-location {
   font-size: 11px;
-  color: #777;
+  color: #c0c0e0; /* Color suau */
 }
 
+/* Icona de "Reservat" (check) */
 .mini-booked-badge {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 8px;
+  right: 8px;
   background: #28a745;
   color: white;
   width: 18px;
@@ -272,33 +176,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-}
-
-/* Responsive */
-@media (max-width: 1200px) {
-  .calendar-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .calendar-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .week-navigation {
-    flex-wrap: nowrap;
-    overflow-x: scroll;
-  }
-  
-  .day-card {
-    min-width: 100px;
-  }
-}
-
-@media (max-width: 480px) {
-  .calendar-grid {
-    grid-template-columns: 1fr;
-  }
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
 }

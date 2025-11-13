@@ -7,6 +7,8 @@ import ManageClasses from "./components/ManageClasses";
 import ViewClasses from "./components/ViewClasses";
 import Calendar from "./components/Calendar";
 import Ranking from "./components/Ranking";
+import Profile from "./components/Profile";
+import StravaRedirect from "./components/StravaRedirect";
 
 function App() {
   return (
@@ -19,7 +21,9 @@ function App() {
         <Route path="/classes" element={<ViewClasses />} />
         <Route path="/manage-classes" element={<ManageClasses />} />
         <Route path="/calendar" element={<Calendar />} />
-        <Route path="/ranking" element={<Ranking />} />  {/* Afegeix aquesta ruta */}
+        <Route path="/ranking" element={<Ranking />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/strava-redirect" element={<StravaRedirect />} />
       </Routes>
     </Router>
   );

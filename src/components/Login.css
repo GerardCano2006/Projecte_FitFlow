@@ -1,21 +1,68 @@
+/* ===== PÀGINA D'AUTENTICACIÓ (Fons fosc) ===== */
 .auth-page {
   min-height: 100vh;
-  background: #f7fafc;
+  background: #1A1A2E;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* 1. Assegurem el box-sizing per a tota la pàgina */
+  box-sizing: border-box; 
+}
+
+/* 2. Assegurem que tot el contenidor també ho respecti */
+.auth-container, .auth-card {
+  box-sizing: border-box;
 }
 
 .auth-container {
   width: 100%;
-  max-width: 640px;
+  max-width: 480px; 
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Role Selector */
+/* Títol principal (FitFlow) */
+.auth-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Targeta del formulari */
+.auth-card {
+  background: #2C2C4E;
+  border-radius: 20px;
+  padding: 32px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  /* 3. Mantenim el text-align: left aquí per si de cas */
+  text-align: left;
+}
+
+.auth-card h2 {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: white;
+}
+
+.auth-subtitle {
+  text-align: center;
+  font-size: 15px;
+  color: #c0c0e0;
+  margin: 0 0 28px 0;
+}
+
+/* ===== SELECTOR DE ROL (Adaptat al Dark Mode) ===== */
 .role-selector {
   display: flex;
   gap: 12px;
@@ -24,166 +71,179 @@
 
 .role-btn {
   flex: 1;
-  padding: 16px;
-  border: 2px solid #e2e8f0;
+  padding: 14px;
+  border: 2px solid #3a3a63;
   border-radius: 12px;
-  background: white;
+  background: #1f1f3d;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  color: #4a5568;
+  color: #c0c0e0;
   text-align: center;
 }
 
 .role-btn.active {
-  background: #1a202c;
+  background: #667eea;
   color: white;
-  border-color: #1a202c;
+  border-color: #667eea;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-/* Auth Card */
-.auth-card {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  width: 100%;
-}
 
-.auth-tabs {
-  display: flex;
-  border-bottom: 2px solid #e2e8f0;
-  margin-bottom: 32px;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 16px;
-  border: none;
-  background: transparent;
-  font-size: 15px;
-  font-weight: 600;
-  color: #718096;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-}
-
-.tab-btn.active {
-  color: #1a202c;
-  border-bottom-color: #1a202c;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
+/* ===== FORMULARI (Inputs, labels...) ===== */
 .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin-bottom: 20px;
+  /* 4. Forcem l'alineació esquerra al grup */
+  text-align: left; 
 }
 
 .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #c0c0e0;
   font-size: 14px;
-  font-weight: 600;
-  color: #2d3748;
+  font-weight: 500;
 }
 
 .form-input,
 .form-select {
   width: 100%;
   padding: 14px 16px;
-  border: 2px solid #e2e8f0;
+  background: #1f1f3d; /* Fons d'input més fosc */
+  border: 2px solid #3a3a63;
   border-radius: 10px;
-  font-size: 14px;
-  background: #f7fafc;
+  color: white;
+  font-size: 15px;
+  font-family: inherit;
   transition: all 0.2s;
+  /* 5. AQUESTA ÉS LA CORRECCIÓ CLAU PER "se surten del requadre" */
+  box-sizing: border-box; 
 }
 
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: #4299e1;
-  background: white;
+  border-color: #667eea; /* Color d'accent */
+  background: #2C2C4E;
 }
 
-/* Password */
+/* Graella per Nom/Cognom, Telefon/Edat */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Wrapper per mostrar/ocultar contrasenya */
 .password-wrapper {
-  display: flex;
-  align-items: center;
   position: relative;
+}
+
+.password-wrapper .form-input {
+  padding-right: 80px; /* Espai per al botó */
 }
 
 .toggle-password {
   position: absolute;
-  right: 16px;
-  background: none;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  width: 75px;
+  background: transparent;
   border: none;
   font-size: 13px;
   font-weight: 600;
-  color: #4299e1;
+  color: #667eea;
   cursor: pointer;
+  border-radius: 0 10px 10px 0;
+  transition: all 0.2s;
 }
 
-.preferences-section {
-  padding-top: 24px;
-  border-top: 1px solid #e2e8f0;
+.toggle-password:hover {
+  background: #3a3a63;
+  color: white;
 }
 
-.section-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #2d3748;
+/* Checkbox de Termes */
+.terms-section {
   margin-bottom: 20px;
 }
 
-.error-alert {
-  padding: 12px 16px;
-  background: #fed7d7;
-  color: #c53030;
-  border-radius: 10px;
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #c0c0e0;
   font-size: 14px;
-  border-left: 4px solid #fc8181;
+  cursor: pointer;
 }
 
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  accent-color: #667eea;
+}
+
+/* Alerta d'error */
+.error-alert {
+  background: #ff6b6b20;
+  border: 1px solid #ff6b6b;
+  color: #ffc4c4;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Botó d'enviament */
 .btn-submit {
   width: 100%;
   padding: 16px;
-  border: none;
-  border-radius: 10px;
-  background: #1a202c;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
   font-size: 16px;
   font-weight: 600;
-  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 5px 20px rgba(118, 75, 162, 0.4);
+  box-sizing: border-box; /* 6. Afegim a tot per seguretat */
+}
+
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(118, 75, 162, 0.5);
+}
+
+.btn-submit:disabled {
+  background: #3a3a63;
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Enllaç (Ex: "Ja tens compte?") */
+.toggle-auth {
+  margin-top: 24px;
+  text-align: center;
+  color: #c0c0e0;
+  font-size: 14px;
+}
+
+.link {
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: none;
   transition: all 0.2s;
-  margin-top: 8px;
+  cursor: pointer;
 }
 
-.btn-submit:hover:not(:disabled) {
-  background: #2d3748;
-}
-
-@media (max-width: 640px) {
-  .auth-card {
-    padding: 24px;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .role-selector {
-    flex-direction: column;
-  }
+.link:hover {
+  text-decoration: underline;
+  color: #8397f0;
 }

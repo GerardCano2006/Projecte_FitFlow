@@ -8,11 +8,14 @@ import {
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
-import "./Login.css";
+// Important: Ara utilitzarem Login.css, que tindrà els estils foscos
+import "./Login.css"; 
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState("client");
+  
+  // Estats del formulari (es mantenen tots)
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
@@ -25,284 +28,330 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  // La lògica de handleLogin i handleAuth es manté intacta
+  const handleAuth = async () => {
     setLoading(true);
     setError("");
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/home");
-    } catch (err) {
-      setError("Email o contrasenya incorrectes");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    
-    if (password !== confirmPassword) {
-      setError("Les contrasenyes no coincideixen");
+    if (password.length < 6) {
+      setError("La contrasenya ha de tenir almenys 6 caràcters.");
       setLoading(false);
       return;
     }
 
-    if (!acceptTerms) {
-      setError("Has d'acceptar els termes i condicions");
-      setLoading(false);
-      return;
+    if (!isLogin) {
+      // --- Procés de Registre (el detallat d'aquest component) ---
+      if (password !== confirmPassword) {
+        setError("Les contrasenyes no coincideixen.");
+        setLoading(false);
+        return;
+      }
+      if (!acceptTerms) {
+        setError("Has d'acceptar els termes i condicions.");
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // Actualitza el perfil de Firebase Auth
+        await updateProfile(user, { displayName: `${name} ${surname}` });
+        
+        // Crea el document a Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          name: name,
+          surname: surname,
+          email: email,
+          phone: phone,
+          age: age,
+          role: role,
+          fitnessLevel: fitnessLevel,
+          goals: goals,
+          points: 0,
+          classesAttended: 0,
+          createdAt: new Date().toISOString()
+        });
+        
+        navigate("/home");
+
+      } catch (error) {
+        setError(error.message);
+      }
+
+    } else {
+      // --- Procés de Login ---
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        navigate("/home");
+      } catch (error) {
+        setError("Email o contrasenya incorrectes.");
+      }
     }
-    
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      const fullName = `${name} ${surname}`;
-      
-      await updateProfile(user, { displayName: fullName });
-      
-      await setDoc(doc(db, "users", user.uid), {
-        name: fullName,
-        email: email,
-        role: role,
-        phone: phone,
-        age: age,
-        fitnessLevel: fitnessLevel,
-        goals: goals,
-        points: 0,
-        createdAt: new Date().toISOString()
-      });
-      
-      navigate("/home");
-    } catch (err) {
-      setError("Error al crear compte: " + err.message);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   };
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    handleAuth();
+  };
+
+  // Funció per netejar el formulari en canviar de mode
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    setError("");
+    setName("");
+    setSurname("");
+    setEmail("");
+    setPhone("");
+    setAge("");
+    setFitnessLevel("");
+    setGoals("");
+    setPassword("");
+    setConfirmPassword("");
+    setAcceptTerms(false);
+  };
+
 
   return (
+    // Nova estructura de classes CSS per al tema fosc
     <div className="auth-page">
       <div className="auth-container">
-        <div className="role-selector">
-          <button 
-            type="button"
-            className={`role-btn ${role === 'client' ? 'active' : ''}`}
-            onClick={() => setRole('client')}
-          >
-            Alumne
-          </button>
-          <button 
-            type="button"
-            className={`role-btn ${role === 'entrenador' ? 'active' : ''}`}
-            onClick={() => setRole('entrenador')}
-          >
-            Entrenador
-          </button>
-        </div>
+        <h1 className="auth-title">FitFlow</h1>
 
         <div className="auth-card">
-          <div className="auth-tabs">
-            <button 
-              type="button"
-              className={`tab-btn ${isLogin ? 'active' : ''}`}
-              onClick={() => setIsLogin(true)}
-            >
-              Iniciar Sessió
-            </button>
-            <button 
-              type="button"
-              className={`tab-btn ${!isLogin ? 'active' : ''}`}
-              onClick={() => setIsLogin(false)}
-            >
-              Registrar-se
-            </button>
-          </div>
+          <h2>{isLogin ? "Inicia Sessió" : "Crear Compte"}</h2>
+          
+          <p className="auth-subtitle">
+            {isLogin ? "Benvingut a FitFlow!" : "Uneix-te a la comunitat FitFlow."}
+          </p>
 
-          <form onSubmit={isLogin ? handleLogin : handleRegister} className="auth-form">
-            {!isLogin && (
+          {/* Selector de Rol (estils actualitzats) */}
+          {!isLogin && (
+            <div className="role-selector">
+              <button
+                className={`role-btn ${role === 'client' ? 'active' : ''}`}
+                onClick={() => setRole('client')}
+              >
+                👤 Sóc Client
+              </button>
+              <button
+                className={`role-btn ${role === 'entrenador' ? 'active' : ''}`}
+                onClick={() => setRole('entrenador')}
+              >
+                👟 Sóc Entrenador
+              </button>
+            </div>
+          )}
+          
+          <form onSubmit={handleLogin}>
+            
+            {/* --- FORMULARI DE LOGIN --- */}
+            {isLogin && (
               <>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Nom</label>
+                <div className="form-group">
+                  <label>Correu electrònic</label>
+                  <input
+                    type="email"
+                    className="form-input"
+                    placeholder="el_teu@correu.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Contrasenya</label>
+                  <div className="password-wrapper">
                     <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Joan"
-                      required
+                      type={showPassword ? "text" : "password"}
                       className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Cognoms</label>
-                    <input
-                      type="text"
-                      value={surname}
-                      onChange={(e) => setSurname(e.target.value)}
-                      placeholder="Garcia López"
+                      placeholder="La teva contrasenya"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="form-input"
                     />
+                    <button
+                      type="button"
+                      className="toggle-password"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? "Ocultar" : "Mostrar"}
+                    </button>
                   </div>
                 </div>
               </>
             )}
 
-            <div className="form-group">
-              <label>Correu electrònic</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="joan.garcia@example.com"
-                required
-                className="form-input"
-              />
-            </div>
-
+            {/* --- FORMULARI DE REGISTRE (DETALLAT) --- */}
             {!isLogin && (
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Telèfon</label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="612 345 678"
-                    className="form-input"
-                  />
+              <>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Nom</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="El teu nom"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Cognoms</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Els teus cognoms"
+                      value={surname}
+                      onChange={(e) => setSurname(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group">
-                  <label>Edat</label>
+                  <label>Correu electrònic</label>
                   <input
-                    type="number"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    placeholder="25"
-                    min="16"
-                    max="99"
+                    type="email"
                     className="form-input"
+                    placeholder="el_teu@correu.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
-              </div>
-            )}
 
-            {!isLogin && role === "client" && (
-              <div className="preferences-section">
-                <h3 className="section-title">Preferències d'Entrenament</h3>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Telèfon</label>
+                    <input
+                      type="tel"
+                      className="form-input"
+                      placeholder="Opcional"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Edat</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      placeholder="Opcional"
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {role === 'client' && (
+                  <>
+                    <div className="form-group">
+                      <label>Nivell de Fitness</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Ex: Principiant, Intermedi..."
+                        value={fitnessLevel}
+                        onChange={(e) => setFitnessLevel(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Objectius</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Ex: Perdre pes, Guanyar força..."
+                        value={goals}
+                        onChange={(e) => setGoals(e.target.value)}
+                      />
+                    </div>
+                  </>
+                )}
                 
                 <div className="form-group">
-                  <label>Nivell de fitness</label>
-                  <select
-                    value={fitnessLevel}
-                    onChange={(e) => setFitnessLevel(e.target.value)}
-                    className="form-select"
-                  >
-                    <option value="">Selecciona el teu nivell</option>
-                    <option value="principiant">Principiant</option>
-                    <option value="intermedi">Intermedi</option>
-                    <option value="avançat">Avançat</option>
-                  </select>
+                  <label>Contrasenya</label>
+                  <div className="password-wrapper">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className="form-input"
+                      placeholder="Mínim 6 caràcters"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="toggle-password"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
                 </div>
-
+                
                 <div className="form-group">
-                  <label>Objectius principals</label>
-                  <select
-                    value={goals}
-                    onChange={(e) => setGoals(e.target.value)}
-                    className="form-select"
-                  >
-                    <option value="">Què vols aconseguir?</option>
-                    <option value="perdre-pes">Perdre pes</option>
-                    <option value="guanyar-muscul">Guanyar múscul</option>
-                    <option value="resistencia">Millorar resistència</option>
-                    <option value="flexibilitat">Flexibilitat</option>
-                  </select>
+                  <label>Confirmar Contrasenya</label>
+                  <div className="password-wrapper">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      className="form-input"
+                      placeholder="Repeteix la contrasenya"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="toggle-password"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
 
-            <div className="form-group">
-              <label>Contrasenya</label>
-              <div className="password-wrapper">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mínim 6 caràcters"
-                  required
-                  minLength="6"
-                  className="form-input"
-                />
-                <button
-                  type="button"
-                  className="toggle-password"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? "Mostrar" : "Ocultar"}
-                </button>
-              </div>
-              {!isLogin && (
-                <small className="form-hint">Ha de contenir almenys 6 caràcters amb lletres i números</small>
-              )}
-            </div>
-
-            {!isLogin && (
-              <div className="form-group">
-                <label>Confirmar contrasenya</label>
-                <div className="password-wrapper">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repeteix la contrasenya"
-                    required
-                    className="form-input"
-                  />
-                  <button
-                    type="button"
-                    className="toggle-password"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? "Mostrar" : "Ocultar"}
-                  </button>
+                <div className="terms-section">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={acceptTerms}
+                      onChange={(e) => setAcceptTerms(e.target.checked)}
+                      className="checkbox-input"
+                    />
+                    <span>
+                      Accepto els <a href="#" className="link">termes i condicions</a>
+                    </span>
+                  </label>
                 </div>
-              </div>
-            )}
-
-            {!isLogin && (
-              <div className="terms-section">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={acceptTerms}
-                    onChange={(e) => setAcceptTerms(e.target.checked)}
-                    className="checkbox-input"
-                  />
-                  <span>
-                    Accepto els <a href="#" className="link">termes i condicions</a> i la <a href="#" className="link">política de privacitat</a>
-                  </span>
-                </label>
-              </div>
+              </>
             )}
 
             {error && <div className="error-alert">{error}</div>}
 
             <button type="submit" className="btn-submit" disabled={loading}>
               {loading ? "Carregant..." : (
-                isLogin ? "Iniciar Sessió" : `Crear Compte com a ${role === 'client' ? 'Alumne' : 'Entrenador'}`
+                isLogin ? "Iniciar Sessió" : `Crear Compte`
               )}
             </button>
           </form>
+        </div>
+
+        {/* Canviador (Login / Register) */}
+        <div className="toggle-auth">
+          <p onClick={toggleMode} className="link">
+            {isLogin
+              ? "No tens un compte? Registra't"
+              : "Ja tens un compte? Inicia sessió"}
+          </p>
         </div>
       </div>
     </div>

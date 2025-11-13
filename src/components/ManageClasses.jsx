@@ -25,104 +25,95 @@ function ManageClasses() {
   });
 
   useEffect(() => {
+    // La lògica de checkUserRole i loadClasses es manté idèntica
+    const checkUserRole = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+  
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists() && userDoc.data().role === "entrenador") {
+        setIsTrainer(true);
+        setTrainerName(userDoc.data().name); // Guardem el nom
+        loadClasses(user.uid); // Carreguem classes només DESPRÉS de confirmar
+      } else {
+        setIsTrainer(false);
+        navigate("/home"); // Redirigim si no és entrenador
+      }
+      setLoading(false);
+    };
+
     checkUserRole();
-    loadClasses();
-  }, []);
+  }, [navigate]);
 
-  const checkUserRole = async () => {
-    const user = auth.currentUser;
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists() && userDoc.data().role === "entrenador") {
-      setIsTrainer(true);
-      setTrainerName(userDoc.data().name);
-    } else {
-      navigate("/home");
-    }
+  const loadClasses = async (trainerId) => {
+    // Aquesta consulta ja filtrava correctament per trainerId, perfecte
+    const q = query(collection(db, "classes"), where("trainerId", "==", trainerId));
+    const querySnapshot = await getDocs(q);
+    const classesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Ordenem per data
+    classesData.sort((a, b) => new Date(a.schedule) - new Date(b.schedule));
+    setClasses(classesData);
   };
 
-  const loadClasses = async () => {
-    try {
-      const user = auth.currentUser;
-      const q = query(collection(db, "classes"), where("trainerId", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      
-      const classesData = [];
-      querySnapshot.forEach((doc) => {
-        classesData.push({ id: doc.id, ...doc.data() });
-      });
-      
-      setClasses(classesData);
-    } catch (error) {
-      console.error("Error carregant classes:", error);
-    } finally {
-      setLoading(false);
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.title || !formData.schedule) {
+      alert("El títol i la data són obligatoris.");
+      return;
+    }
+
     try {
       const user = auth.currentUser;
-      const tagsArray = formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [];
-      
-      const classData = {
-        ...formData,
-        tags: tagsArray,
-        trainerId: user.uid,
-        trainerName: trainerName,
-        rating: 4.5
+      if (!user) return;
+
+      const classData = { 
+        ...formData, 
+        trainerId: user.uid, 
+        trainerName: trainerName // Afegim el nom de l'entrenador
       };
 
       if (editingClass) {
-        await updateDoc(doc(db, "classes", editingClass.id), {
-          ...classData,
-          updatedAt: new Date().toISOString()
-        });
-        alert("Classe actualitzada!");
+        // Actualitzar
+        const classDoc = doc(db, "classes", editingClass.id);
+        await updateDoc(classDoc, classData);
+        setEditingClass(null);
       } else {
-        await addDoc(collection(db, "classes"), {
-          ...classData,
-          createdAt: new Date().toISOString()
-        });
-        alert("Classe creada!");
+        // Crear
+        await addDoc(collection(db, "classes"), classData);
       }
       
       resetForm();
-      loadClasses();
+      loadClasses(user.uid); // Recarregar classes
+      setShowForm(false);
     } catch (error) {
-      console.error("Error guardant classe:", error);
-      alert("Error: " + error.message);
+      console.error("Error guardant la classe:", error);
     }
   };
 
   const handleEdit = (classItem) => {
-    setEditingClass(classItem);
     setFormData({
-      title: classItem.title,
-      description: classItem.description,
-      schedule: classItem.schedule,
-      duration: classItem.duration,
-      capacity: classItem.capacity,
-      location: classItem.location || "Studio A",
-      imageUrl: classItem.imageUrl || "",
-      tags: Array.isArray(classItem.tags) ? classItem.tags.join(', ') : ""
+      ...classItem,
+      schedule: new Date(classItem.schedule).toISOString().substring(0, 16)
     });
+    setEditingClass(classItem);
     setShowForm(true);
   };
 
-  const handleDelete = async (classId) => {
-    if (window.confirm("Segur que vols eliminar aquesta classe?")) {
+  const handleDelete = async (id) => {
+    if (window.confirm("Estàs segur que vols eliminar aquesta classe?")) {
       try {
-        await deleteDoc(doc(db, "classes", classId));
-        alert("Classe eliminada!");
-        loadClasses();
+        await deleteDoc(doc(db, "classes", id));
+        loadClasses(auth.currentUser.uid); // Recarregar
       } catch (error) {
-        console.error("Error eliminant classe:", error);
+        console.error("Error eliminant la classe:", error);
       }
     }
   };
@@ -139,135 +130,123 @@ function ManageClasses() {
       tags: ""
     });
     setEditingClass(null);
-    setShowForm(false);
   };
 
   if (loading) {
-    return <div className="loading">Carregant...</div>;
+    return <div className="loading-screen">Verificant accés...</div>;
   }
-
   if (!isTrainer) {
-    return null;
+    return null; // O un missatge d'accés denegat
   }
 
   return (
     <div className="manage-container">
       <div className="manage-header">
-        <h2>Gestionar Classes</h2>
+        <h2>Gestió de Classes</h2>
         <button className="btn-back" onClick={() => navigate("/home")}>
-          Tornar
+          ⬅ Tornar
         </button>
       </div>
 
-      <button className="btn-new-class" onClick={() => setShowForm(!showForm)}>
-        {showForm ? "Cancel·lar" : "Nova Classe"}
+      <button 
+        className="btn-new-class" 
+        onClick={() => {
+          setShowForm(!showForm);
+          resetForm();
+        }}
+      >
+        {showForm ? "Tancar Formulari" : "✨ Crear Nova Classe"}
       </button>
 
       {showForm && (
         <form className="class-form" onSubmit={handleSubmit}>
-          <h3>{editingClass ? "Editar Classe" : "Crear Nova Classe"}</h3>
+          <h3>{editingClass ? "Editant Classe" : "Nova Classe"}</h3>
           
           <div className="form-group">
-            <label htmlFor="title">Títol de la classe *</label>
+            <label>Títol de la Classe</label>
             <input
-              id="title"
               type="text"
-              placeholder="Ex: Yoga Matinal, Spinning Intens..."
+              name="title"
               value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              onChange={handleChange}
+              placeholder="Ex: Ioga Vinyasa"
               required
             />
           </div>
           
           <div className="form-group">
-            <label htmlFor="description">Descripció *</label>
+            <label>Descripció</label>
             <textarea
-              id="description"
-              placeholder="Explica de què tracta la classe, nivell, objectius..."
+              name="description"
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              required
+              onChange={handleChange}
               rows="3"
+              placeholder="Descriu la classe..."
             />
+          </div>
+
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Data i Hora</label>
+              <input
+                type="datetime-local"
+                name="schedule"
+                value={formData.schedule}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Duració (minuts)</label>
+              <input
+                type="number"
+                name="duration"
+                value={formData.duration}
+                onChange={handleChange}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Aforament</label>
+              <input
+                type="number"
+                name="capacity"
+                value={formData.capacity}
+                onChange={handleChange}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Ubicació</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+              />
+            </div>
           </div>
           
           <div className="form-group">
-            <label htmlFor="imageUrl">URL de la imatge (opcional)</label>
+            <label>URL de la Imatge (Opcional)</label>
             <input
-              id="imageUrl"
               type="text"
-              placeholder="https://example.com/imatge.jpg"
+              name="imageUrl"
               value={formData.imageUrl}
-              onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-            />
-            <small className="hint">
-              Pots usar imatges d'Unsplash: https://source.unsplash.com/800x400/?yoga,fitness,gym
-            </small>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="schedule">Data i hora *</label>
-            <input
-              id="schedule"
-              type="datetime-local"
-              value={formData.schedule}
-              onChange={(e) => setFormData({...formData, schedule: e.target.value})}
-              required
+              onChange={handleChange}
+              placeholder="https://exemple.com/imatge.png"
             />
           </div>
           
           <div className="form-group">
-            <label htmlFor="duration">Duració (minuts) *</label>
+            <label>Tags (Opcional)</label>
             <input
-              id="duration"
-              type="number"
-              placeholder="60"
-              value={formData.duration}
-              onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value)})}
-              required
-              min="15"
-            />
-            <small className="hint">La duració mínima és de 15 minuts</small>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="capacity">Aforament màxim *</label>
-            <input
-              id="capacity"
-              type="number"
-              placeholder="20"
-              value={formData.capacity}
-              onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value)})}
-              required
-              min="1"
-            />
-            <small className="hint">Nombre màxim de persones que poden assistir</small>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="location">Ubicació *</label>
-            <select
-              id="location"
-              value={formData.location}
-              onChange={(e) => setFormData({...formData, location: e.target.value})}
-            >
-              <option value="Sala A">Sala A</option>
-              <option value="Sala B">Sala B</option>
-              <option value="Sala C">Sala C</option>
-              <option value="Piscina">Piscina</option>
-              <option value="Sala de Spinning">Sala de Spinning</option>
-              <option value="Sala 5">Sala 5</option>
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="tags">Material necessari (opcional)</label>
-            <input
-              id="tags"
               type="text"
-              placeholder="Estora de Yoga, Peses, Gomes elàstiques..."
+              name="tags"
               value={formData.tags}
-              onChange={(e) => setFormData({...formData, tags: e.target.value})}
+              onChange={handleChange}
+              placeholder="Ioga, Relax, Principiant"
             />
             <small className="hint">Separa els elements amb comes</small>
           </div>
@@ -279,16 +258,20 @@ function ManageClasses() {
       )}
 
       <div className="classes-list">
-        <h3>Les meves classes</h3>
+        <h3>Les teves classes creades 📋</h3>
         {classes.length === 0 ? (
-          <p>No tens classes creades encara.</p>
+          <p className="no-classes">No tens classes creades encara.</p>
         ) : (
           classes.map((classItem) => (
             <div key={classItem.id} className="class-item">
               <h4>{classItem.title}</h4>
-              <p>{classItem.description}</p>
-              <p><strong>Data:</strong> {new Date(classItem.schedule).toLocaleString('ca-ES')}</p>
-              <p><strong>Duració:</strong> {classItem.duration} min | <strong>Aforament:</strong> {classItem.capacity} places | <strong>Ubicació:</strong> {classItem.location}</p>
+              <p className="class-desc">{classItem.description}</p>
+              <div className="class-details">
+                <span><strong>Data:</strong> {new Date(classItem.schedule).toLocaleString('ca-ES')}</span>
+                <span><strong>Duració:</strong> {classItem.duration} min</span>
+                <span><strong>Aforament:</strong> {classItem.capacity} places</span>
+                <span><strong>Ubicació:</strong> {classItem.location}</span>
+              </div>
               
               <div className="class-actions">
                 <button className="btn-edit" onClick={() => handleEdit(classItem)}>

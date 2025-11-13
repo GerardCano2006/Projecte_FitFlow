@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore"; // Assegura't que getDoc estigui importat
 import { useNavigate } from "react-router-dom";
 import "./Calendar.css";
 
@@ -8,7 +8,7 @@ function Calendar() {
   const [weekClasses, setWeekClasses] = useState({});
   const [myBookings, setMyBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDay, setSelectedDay] = useState(null);
+  // Hem eliminat selectedDay perquè no s'estava utilitzant al codi original
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,7 +18,7 @@ function Calendar() {
       return;
     }
     loadWeekClasses();
-    loadMyBookings();
+    loadMyBookings(user.uid); // Passem el UID de l'usuari
   }, [navigate]);
 
   const getWeekDays = () => {
@@ -39,189 +39,95 @@ function Calendar() {
       const weekDays = getWeekDays();
       const startDate = weekDays[0];
       const endDate = new Date(weekDays[6]);
-      endDate.setHours(23, 59, 59, 999);
+      endDate.setHours(23, 59, 59, 999); // Assegura't que agafa fins al final del dia
 
-      const querySnapshot = await getDocs(collection(db, "classes"));
-      const classesData = [];
-      
+      const classesRef = collection(db, "classes");
+      const q = query(
+        classesRef,
+        where("schedule", ">=", startDate.toISOString()),
+        where("schedule", "<=", endDate.toISOString())
+      );
+
+      const querySnapshot = await getDocs(q);
+      const classesByDay = {};
+      weekDays.forEach(day => {
+        classesByDay[day.toISOString().split('T')[0]] = [];
+      });
+
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const classDate = new Date(data.schedule);
-        if (classDate >= startDate && classDate <= endDate) {
-          classesData.push({ id: doc.id, ...data });
+        const classData = { id: doc.id, ...doc.data() };
+        const classDateStr = new Date(classData.schedule).toISOString().split('T')[0];
+        if (classesByDay[classDateStr]) {
+          classesByDay[classDateStr].push(classData);
         }
       });
 
-      const classesGrouped = {};
-      weekDays.forEach(day => {
-        const dayKey = day.toISOString().split('T')[0];
-        classesGrouped[dayKey] = classesData
-          .filter(c => {
-            const cDate = new Date(c.schedule);
-            return cDate.toISOString().split('T')[0] === dayKey;
-          })
-          .sort((a, b) => new Date(a.schedule) - new Date(b.schedule));
-      });
+      // Ordena les classes per hora dins de cada dia
+      for (const day in classesByDay) {
+        classesByDay[day].sort((a, b) => new Date(a.schedule) - new Date(b.schedule));
+      }
 
-      setWeekClasses(classesGrouped);
+      setWeekClasses(classesByDay);
     } catch (error) {
-      console.error("Error carregant classes de la setmana:", error);
+      console.error("Error carregant classes:", error);
+    }
+  };
+
+  const loadMyBookings = async (userId) => {
+    try {
+      // Accedeix directament a les reserves de l'usuari
+      const userDocRef = doc(db, "users", userId);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        setMyBookings(userData.bookedClasses || []);
+      }
+    } catch (error) {
+      console.error("Error carregant reserves:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadMyBookings = async () => {
-    try {
-      const user = auth.currentUser;
-      const q = query(collection(db, "bookings"), where("userId", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      
-      const bookingsData = [];
-      querySnapshot.forEach((doc) => {
-        bookingsData.push({ id: doc.id, ...doc.data() });
-      });
-      setMyBookings(bookingsData);
-    } catch (error) {
-      console.error("Error carregant reserves:", error);
-    }
-  };
-
   const isBooked = (classId) => {
-    return myBookings.some(
-      booking => booking.classId === classId && booking.status === "confirmed"
-    );
+    return myBookings.includes(classId);
   };
 
-  const formatTime = (dateString) => {
-    return new Date(dateString).toLocaleTimeString('ca-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+  const formatTime = (isoString) => {
+    return new Date(isoString).toLocaleTimeString('ca-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
     });
   };
 
   const getDayName = (date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const compareDate = new Date(date);
-    compareDate.setHours(0, 0, 0, 0);
-
-    if (compareDate.getTime() === today.getTime()) {
-      return "Avui";
-    }
-
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    if (compareDate.getTime() === tomorrow.getTime()) {
-      return "Demà";
-    }
-
-    return date.toLocaleDateString('ca-ES', { weekday: 'long' });
+    const days = ['DIU', 'DIL', 'DIM', 'DIM', 'DIJ', 'DIV', 'DIS'];
+    return days[date.getDay()];
   };
-
-  const getClassColor = (title) => {
-    const colors = {
-      'yoga': '#e8f5e9',
-      'spinning': '#fff3e0',
-      'fitness': '#e3f2fd',
-      'pilates': '#f3e5f5',
-      'aerobic': '#ffe0e0',
-      'zumba': '#fff9c4',
-      'hiit': '#ffebee',
-      'crossfit': '#e0f2f1'
-    };
-
-    const titleLower = title.toLowerCase();
-    for (const key in colors) {
-      if (titleLower.includes(key)) {
-        return colors[key];
-      }
-    }
-    return '#f5f5f5';
-  };
-
-  if (loading) {
-    return <div className="loading">Carregant calendari...</div>;
-  }
 
   const weekDays = getWeekDays();
-  const classesForSelectedDay = selectedDay ? weekClasses[selectedDay] || [] : [];
 
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        <h2>Calendari Setmanal</h2>
+        <h2>El Meu Calendari</h2>
         <button className="btn-back" onClick={() => navigate("/home")}>
-          Tornar
+          ⬅ Tornar a Home
         </button>
       </div>
 
-      <div className="week-navigation">
-        {weekDays.map((day, index) => {
-          const dayKey = day.toISOString().split('T')[0];
-          const dayClasses = weekClasses[dayKey] || [];
-          const isSelected = selectedDay === dayKey;
-          const isToday = day.toDateString() === new Date().toDateString();
-
-          return (
-            <div 
-              key={index}
-              className={`day-card ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
-              onClick={() => setSelectedDay(isSelected ? null : dayKey)}
-            >
-              <div className="day-name">{getDayName(day)}</div>
-              <div className="day-number">{day.getDate()}</div>
-              <div className="day-classes-count">{dayClasses.length} classes</div>
-            </div>
-          );
-        })}
-      </div>
-
-      {selectedDay && (
-        <div className="day-classes">
-          <h3>Classes del {new Date(selectedDay).toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
-          
-          {classesForSelectedDay.length === 0 ? (
-            <p className="no-classes">No hi ha classes programades aquest dia.</p>
-          ) : (
-            <div className="classes-timeline">
-              {classesForSelectedDay.map((classItem) => {
-                const booked = isBooked(classItem.id);
-                const backgroundColor = getClassColor(classItem.title);
-
-                return (
-                  <div 
-                    key={classItem.id}
-                    className={`timeline-class ${booked ? 'booked' : ''}`}
-                    style={{ backgroundColor }}
-                    onClick={() => navigate('/classes')}
-                  >
-                    <div className="timeline-time">{formatTime(classItem.schedule)}</div>
-                    <div className="timeline-content">
-                      <h4>{classItem.title}</h4>
-                      <p className="timeline-trainer">amb {classItem.trainerName || "Instructor"}</p>
-                      <div className="timeline-meta">
-                        <span>⏱️ {classItem.duration} min</span>
-                        <span>📍 {classItem.location}</span>
-                        {booked && <span className="booked-label">✓ Reservat</span>}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {!selectedDay && (
+      {loading ? (
+        <div className="loading">Carregant calendari...</div>
+      ) : (
         <div className="calendar-grid">
-          {weekDays.map((day, dayIndex) => {
+          {weekDays.map((day) => {
             const dayKey = day.toISOString().split('T')[0];
             const dayClasses = weekClasses[dayKey] || [];
 
             return (
-              <div key={dayIndex} className="calendar-day-column">
+              <div className="day-column" key={dayKey}>
                 <div className="column-header">
                   <div className="column-day">{getDayName(day)}</div>
                   <div className="column-date">{day.getDate()}</div>
@@ -233,14 +139,16 @@ function Calendar() {
                   ) : (
                     dayClasses.map((classItem) => {
                       const booked = isBooked(classItem.id);
-                      const backgroundColor = getClassColor(classItem.title);
+
+                      // S'HA ELIMINAT: const backgroundColor = getClassColor(classItem.title);
+                      // S'HA ELIMINAT: style={{ backgroundColor }}
+                      // Ara el CSS controlarà el fons fosc.
 
                       return (
                         <div 
                           key={classItem.id}
                           className={`mini-class-card ${booked ? 'booked' : ''}`}
-                          style={{ backgroundColor }}
-                          onClick={() => navigate('/classes')}
+                          onClick={() => navigate('/classes')} // Envia a la pàgina de classes per gestionar
                         >
                           <div className="mini-class-time">{formatTime(classItem.schedule)}</div>
                           <div className="mini-class-title">{classItem.title}</div>

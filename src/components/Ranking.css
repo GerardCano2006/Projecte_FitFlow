@@ -1,12 +1,26 @@
+/* ===== CONTENIDOR PRINCIPAL (Dark Mode) ===== */
 .ranking-container {
+  min-height: 100vh;
+  background: #1A1A2E;
+  color: white;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   max-width: 900px;
-  margin: 40px auto;
-  padding: 30px;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  margin: 0 auto;
 }
 
+/* Loading screen (consistent) */
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #1A1A2E;
+  color: white;
+  font-size: 20px;
+}
+
+/* ===== CAPÇALERA ===== */
 .ranking-header {
   display: flex;
   justify-content: space-between;
@@ -16,92 +30,170 @@
 
 .ranking-header h2 {
   margin: 0;
-  color: #333;
-  font-size: 26px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
 }
 
+/* Botó de tornar (consistent) */
 .btn-back {
   padding: 10px 20px;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 8px;
+  background-color: transparent;
+  color: #c0c0e0;
+  border: 2px solid #3a3a63;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.3s;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .btn-back:hover {
-  background-color: #5a6268;
+  background-color: #3a3a63;
+  color: white;
 }
 
-.loading,
 .no-data {
+  color: #c0c0e0;
   text-align: center;
-  font-size: 18px;
-  color: #666;
-  margin-top: 40px;
+  padding: 40px;
+  font-size: 16px;
+  background: #2C2C4E;
+  border-radius: 12px;
+}
+
+/* ===== TAULA DEL RÀNQUING ===== */
+.table-wrapper {
+  /* Fons de la taula (targeta fosca) */
+  background: #2C2C4E;
+  border-radius: 16px;
+  padding: 16px;
+  overflow-x: auto; /* Per si la taula és massa ampla en mòbils */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .ranking-table {
   width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-collapse: separate; /* Permet border-radius a les files */
+  border-spacing: 0 8px; /* Espai entre files (vertical) */
 }
 
-.ranking-table th,
-.ranking-table td {
-  padding: 14px 18px;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 15px;
-}
-
+/* Capçalera de la taula */
 .ranking-table th {
-  background-color: #007bff;
-  color: white;
+  padding: 16px 20px;
+  text-align: left;
+  color: #c0c0e0; /* Color suau per la capçalera */
+  font-size: 13px;
+  font-weight: 600;
   text-transform: uppercase;
-  font-size: 14px;
-  letter-spacing: 0.5px;
+  border-bottom: 2px solid #3a3a63; /* Separador */
 }
 
-.ranking-table tr:hover {
-  background-color: #f9f9f9;
+/* Files de la taula */
+.ranking-table tbody tr {
+  /* Fons de fila (més fosc que el fons de la taula) */
+  background: #1f1f3d;
+  transition: all 0.2s ease-in-out;
 }
 
-.gold {
-  background-color: #fff7d1;
-  font-weight: bold;
+.ranking-table tbody tr:hover {
+  background: #3a3a63;
+  transform: scale(1.02); /* Efecte lleuger de zoom */
 }
 
-.silver {
-  background-color: #f4f4f4;
-  font-weight: bold;
+.ranking-table td {
+  padding: 20px;
+  vertical-align: middle;
+  color: white;
+  font-size: 15px;
+  /* Vora inferior per separar (del mateix color que el fons de la taula) */
+  border-bottom: 1px solid #2C2C4E;
+  /* Per les cantonades arrodonides */
+  border-color: #2C2C4E; 
 }
 
-.bronze {
-  background-color: #ffe0b2;
-  font-weight: bold;
+/* Cantonades arrodonides */
+.ranking-table td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+.ranking-table td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .ranking-container {
-    padding: 20px;
-  }
+/* Estils de les cel·les */
+.rank-position {
+  width: 60px; /* Amplada fixa per la posició */
+}
 
-  .ranking-header h2 {
-    font-size: 22px;
-  }
+.rank-badge {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  border-radius: 50%;
+  background: #3a3a63; /* Fons genèric de la medalla */
+  color: white;
+  font-weight: 600;
+}
 
-  .ranking-table th,
-  .ranking-table td {
-    padding: 10px 12px;
-    font-size: 13px;
-  }
+.rank-name {
+  font-weight: 500;
+  color: white;
+}
+
+.rank-points {
+  font-weight: 700;
+  color: #667eea; /* Color d'accent per als punts */
+  font-size: 16px;
+  text-align: right;
+  width: 100px;
+}
+
+/* ===== MEDALLES TOP 3 ===== */
+/* Estils per les medalles del Top 3 */
+
+/* Or (1r) */
+.ranking-table .gold .rank-badge {
+  background: linear-gradient(135deg, #ffd700, #f6ad55);
+  color: #1a202c;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+}
+.ranking-table .gold .rank-name,
+.ranking-table .gold .rank-points {
+  font-weight: 700;
+  color: #ffd700; /* Text daurat */
+}
+.ranking-table .gold:hover {
+  background: #4a3c00;
+}
+
+/* Plata (2n) */
+.ranking-table .silver .rank-badge {
+  background: linear-gradient(135deg, #e0e0e0, #a0aec0);
+  color: #1a202c;
+  box-shadow: 0 0 10px rgba(203, 213, 224, 0.6);
+}
+.ranking-table .silver .rank-name,
+.ranking-table .silver .rank-points {
+  color: #e0e0e0; /* Text platejat */
+}
+.ranking-table .silver:hover {
+  background: #3a414b;
+}
+
+/* Bronze (3r) */
+.ranking-table .bronze .rank-badge {
+  background: linear-gradient(135deg, #cd7f32, #dd6b20);
+  color: white;
+  box-shadow: 0 0 10px rgba(205, 127, 50, 0.6);
+}
+.ranking-table .bronze .rank-name,
+.ranking-table .bronze .rank-points {
+  color: #dd6b20; /* Text bronze */
+}
+.ranking-table .bronze:hover {
+  background: #442a15;
 }

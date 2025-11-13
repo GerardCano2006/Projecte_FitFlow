@@ -3,7 +3,7 @@ import { auth, db } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import "./Home.css";
+import "./Home.css"; // Continuem utilitzant el mateix CSS, que modificarem
 
 function Home() {
   const [userData, setUserData] = useState(null);
@@ -42,101 +42,105 @@ function Home() {
       await signOut(auth);
       navigate("/login");
     } catch (error) {
-      console.error("Error tancant sessió:", error);
+      console.error("Error tancant sessió:", error.message);
     }
   };
 
   if (loading) {
-    return <div className="loading">Carregant...</div>;
+    return <div className="loading-screen">Carregant FitFlow...</div>;
   }
 
   return (
     <div className="home-container">
-      {/* Hero Section */}
+      
+      {/* ===== HEADER ===== */}
       <div className="hero-section">
         <div className="hero-content">
-          <h1>Benvingut a FitFlow!</h1>
-          <p className="hero-subtitle">La teva millor versió comença aquí</p>
+          <h1>Hola, {userData?.name || "Usuari"}</h1>
+          <p className="hero-subtitle">Benvingut a FitFlow</p> 
+        </div>
+        <div className="avatar-placeholder">
+          {userData?.name ? userData.name.charAt(0) : 'U'}
         </div>
       </div>
 
-      {/* User Stats Card */}
+      {/* ===== TARGETA D'ESTADÍSTIQUES ===== */}
       <div className="stats-card">
-        <div className="user-avatar">
-          {userData?.name?.charAt(0)?.toUpperCase()}
+        <div className="stat-item">
+          <span className="stat-value">{userData?.classesAttended || 0}</span>
+          <span className="stat-label">Classes</span>
         </div>
-        <div className="user-info">
-          <h2>{userData?.name || "Usuari"}</h2>
-          <p>{userData?.email}</p>
-          <span className={`role-badge ${userData?.role === 'entrenador' ? 'trainer' : 'client'}`}>
-            {userData?.role === "entrenador" ? "👨‍🏫 Entrenador" : "🏃 Client"}
-          </span>
+        <div className="stat-item">
+          <span className="stat-value">{userData?.points || 0}</span>
+          <span className="stat-label">Punts</span>
         </div>
-        
-        {userData?.role === "client" && (
-          <div className="points-section">
-            <div className="points-circle">
-              <span className="points-number">{userData.points || 0}</span>
-              <span className="points-label">Punts</span>
-            </div>
-            <div className="stats-grid">
-              <div className="stat-item">
-                <span className="stat-number">{userData.classesAttended || 0}</span>
-                <span className="stat-label">Classes</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">{userData.classesThisWeek || 0}</span>
-                <span className="stat-label">Aquesta setm.</span>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="stat-item">
+          <span className="stat-value">#1</span> 
+          <span className="stat-label">Rànquing</span>
+        </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* ===== BOTONS D'ACCIÓ ===== */}
       <div className="actions-section">
         <h3>Què vols fer avui?</h3>
         
         {userData?.role === "entrenador" ? (
-          <div className="buttons-grid">
+          // CORREGIT: Ara és una graella de 2 columnes
+          <div className="buttons-grid trainer-grid">
             <button 
-              className="action-btn primary" 
+              className="action-btn" 
               onClick={() => navigate("/manage-classes")}
             >
               <span className="btn-icon">📋</span>
               Gestionar Classes
             </button>
+            {/* 👈 BOTÓ AFEGIT */}
+            <button 
+              className="action-btn" 
+              onClick={() => navigate("/profile")}
+            >
+              <span className="btn-icon">👤</span>
+              El meu Perfil
+            </button>
           </div>
         ) : (
-          <div className="buttons-grid">
+          // Graella 2x2 per Clients
+          <div className="buttons-grid client-grid">
             <button 
-              className="action-btn primary" 
+              className="action-btn" 
               onClick={() => navigate("/classes")}
             >
-              <span className="btn-icon">🎯</span>
-              Veure Classes
+              <span className="btn-icon">🗓️</span>
+              Reservar Classe
             </button>
             <button 
-              className="action-btn secondary" 
+              className="action-btn" 
               onClick={() => navigate("/calendar")}
             >
               <span className="btn-icon">📅</span>
               El meu Calendari
             </button>
             <button 
-              className="action-btn gold" 
+              className="action-btn" 
               onClick={() => navigate("/ranking")}
             >
               <span className="btn-icon">🏆</span>
-              Veure Ranking
+              Veure Rànquing
+            </button>
+            <button 
+              className="action-btn" 
+              onClick={() => navigate("/profile")}
+            >
+              <span className="btn-icon">👤</span>
+              El meu Perfil
             </button>
           </div>
         )}
       </div>
 
-      {/* Logout Button */}
+      {/* Botó de Logout */}
       <button className="logout-btn" onClick={handleLogout}>
-        🚪 Tancar sessió
+        Tancar sessió
       </button>
     </div>
   );

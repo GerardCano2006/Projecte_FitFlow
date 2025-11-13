@@ -53,7 +53,7 @@
 }
 
 .class-card {
-  background: white;
+  background: #3a3a63;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -101,7 +101,7 @@
 
 .class-card-content h3 {
   margin: 0 0 8px 0;
-  color: #333;
+  color: white;
   font-size: 20px;
 }
 
@@ -111,7 +111,7 @@
   align-items: center;
   margin-bottom: 12px;
   font-size: 14px;
-  color: #666;
+  color: white;
 }
 
 .rating-small {
@@ -124,7 +124,7 @@
   flex-direction: column;
   gap: 6px;
   font-size: 13px;
-  color: #777;
+  color: white;
 }
 
 /* Detall de la classe */
