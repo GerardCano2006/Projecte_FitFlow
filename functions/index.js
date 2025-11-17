@@ -1,14 +1,10 @@
 // AQUEST ÉS EL TEU functions/index.js COMPLET I FINAL
 
-// Importa els mòduls de v2 (el més nou)
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-
-// Importa els mòduls d'admin
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 const axios = require("axios");
 
-// Inicialitza l'app d'admin
 initializeApp();
 const db = getFirestore();
 
@@ -21,6 +17,7 @@ exports.exchangeStravaToken = onCall(
     secrets: ["STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET"],
   },
   async (request) => {
+    // ... (El codi d'aquesta funció no canvia)
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Només els usuaris autenticats poden connectar Strava.");
     }
@@ -61,13 +58,17 @@ exports.exchangeStravaToken = onCall(
 );
 
 // ===================================================================
-// FUNCIÓ 2: DEMANAR ACTIVITATS (ARA AMB LÒGICA DE REFRESC)
+// FUNCIÓ 2: DEMANAR ACTIVITATS (ARA AMB MÉS POTÈNCIA)
 // ===================================================================
 exports.getStravaActivities = onCall(
   {
-    enforceAppCheck: false, // Desactivem App Check
-    // 👇 **AFEGIM ELS SECRETS AQUÍ TAMBÉ (els necessitem per refrescar)**
+    enforceAppCheck: false,
     secrets: ["STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET"],
+    
+    // 👇 --- AQUÍ ESTÀ L'ACTUALITZACIÓ DE POTÈNCIA --- 👇
+    timeoutSeconds: 300,  // Li donem 5 minuts (abans 120)
+    memory: "1GiB",       // Li donem 1GB de RAM (abans 256MB)
+    cpu: 1                // Li donem 1 CPU sencera (abans molt menys)
   },
   async (request) => {
     // 1. Verificar usuari
@@ -78,7 +79,7 @@ exports.getStravaActivities = onCall(
 
     try {
       // 2. Anar a Firestore a buscar la "clau"
-      const userDocRef = db.collection("users").doc(uid); // Guardem la referència
+      const userDocRef = db.collection("users").doc(uid);
       const userDoc = await userDocRef.get();
       
       if (!userDoc.exists || !userDoc.data().strava) {
@@ -89,11 +90,10 @@ exports.getStravaActivities = onCall(
       let accessToken = stravaData.accessToken;
       const nowInSeconds = Math.floor(Date.now() / 1000);
 
-      // 3. 👇 --- AQUÍ ESTÀ LA MÀGIA: LÒGICA DE REFRESC --- 👇
+      // 3. LÒGICA DE REFRESC
       if (stravaData.expiresAt < nowInSeconds) {
         console.log("Token de Strava caducat. Refrescant...");
         
-        // Obtenim els secrets per poder refrescar
         const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID;
         const STRAVA_CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET;
 
@@ -105,12 +105,11 @@ exports.getStravaActivities = onCall(
               client_id: STRAVA_CLIENT_ID,
               client_secret: STRAVA_CLIENT_SECRET,
               grant_type: "refresh_token",
-              refresh_token: stravaData.refreshToken, // Fem servir la "clau mestra"
+              refresh_token: stravaData.refreshToken,
             },
           }
         );
 
-        // Strava ens torna claus noves
         const newStravaData = response.data;
         const newTokens = {
           accessToken: newStravaData.access_token,
@@ -118,19 +117,18 @@ exports.getStravaActivities = onCall(
           expiresAt: newStravaData.expires_at,
         };
 
-        // 4. Desem les claus NOVES a Firestore (fusionant amb les dades que ja teníem)
+        // 4. Desem les claus NOVES
         await userDocRef.set(
-          { strava: { ...stravaData, ...newTokens } }, // Unim 'stravaData' vella i 'newTokens'
+          { strava: { ...stravaData, ...newTokens } },
           { merge: true }
         );
 
-        // Fem servir el nou token per a la trucada d'ara
         accessToken = newStravaData.access_token;
         console.log("Token refrescat i desat correctament!");
       }
       // --- FI DE LA LÒGICA DE REFRESC ---
 
-      // 5. Fer la trucada a l'API de Strava amb la clau (nova o vella)
+      // 5. Fer la trucada a l'API de Strava
       const response = await axios.get(
         "https://www.strava.com/api/v3/athlete/activities",
         {
@@ -139,13 +137,12 @@ exports.getStravaActivities = onCall(
         }
       );
 
-      // 6. Retornar les activitats al frontend
+      // 6. Retornar les activitats
       return { success: true, activities: response.data };
 
     } catch (error) {
       console.error("Error al buscar activitats de Strava:", error.response ? error.response.data : error.message);
       
-      // Si el 'refresh_token' també falla, li diem que es torni a connectar
       if (error.response && error.response.status === 401) {
          throw new HttpsError("unauthenticated", "El token de Strava ha caducat. Si us plau, torna't a connectar.");
       }

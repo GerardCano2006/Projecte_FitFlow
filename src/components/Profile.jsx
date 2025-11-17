@@ -1,24 +1,56 @@
-import React, { useState, useEffect } from 'react'; // Ja no importem 'useContext'
-import { auth, db } from '../firebaseConfig'; // 👈 Importem 'auth' i 'db'
+import React, { useState, useEffect } from 'react';
+import { auth, db } from '../firebaseConfig';
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
+// Importem useNavigate per moure'ns entre pàgines
+import { useNavigate } from 'react-router-dom';
 
-// ... (Els teus 'styles' es queden exactament igual)
 const styles = {
   profileContainer: {
     padding: '40px',
     maxWidth: '900px',
     margin: '30px auto',
-    backgroundColor: '#1E1E2E', // Color fosc
-    color: '#E0E0E0', // Color de text clar
+    backgroundColor: '#1E1E2E',
+    color: '#E0E0E0',
     borderRadius: '10px',
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)'
   },
-  header: {
-    borderBottom: '2px solid #4E4E6E',
+  // --- BARRA DE NAVEGACIÓ ---
+  navBar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '30px',
     paddingBottom: '20px',
-    marginBottom: '20px'
+    borderBottom: '1px solid #4E4E6E'
+  },
+  navButton: {
+    backgroundColor: 'transparent',
+    color: '#E0E0E0',
+    border: '1px solid #4E4E6E',
+    padding: '8px 15px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '0.9em',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px'
+  },
+  editButton: {
+    backgroundColor: '#3A3A5A',
+    color: '#ffffff',
+    border: 'none',
+    padding: '8px 15px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '0.9em',
+    fontWeight: 'bold'
+  },
+  // --------------------------
+  header: {
+    marginBottom: '20px',
+    textAlign: 'center'
   },
   stravaSection: {
     marginTop: '30px',
@@ -27,7 +59,7 @@ const styles = {
     borderRadius: '8px'
   },
   stravaButton: {
-    backgroundColor: '#FC4C02', // Color taronja de Strava
+    backgroundColor: '#FC4C02',
     color: 'white',
     border: 'none',
     padding: '12px 20px',
@@ -43,73 +75,107 @@ const styles = {
   },
   activityItem: {
     backgroundColor: '#3A3A5A',
-    padding: '15px',
-    borderRadius: '5px',
-    marginBottom: '10px',
+    padding: '20px',
+    borderRadius: '8px',
+    marginBottom: '15px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px'
+  },
+  activityTop: {
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid #4E4E6E',
+    paddingBottom: '10px',
+    marginBottom: '5px'
+  },
+  activityName: {
+    fontWeight: 'bold',
+    fontSize: '1.1em',
+    color: '#ffffff'
+  },
+  activityDate: {
+    fontSize: '0.85em',
+    color: '#d0d0d0'
+  },
+  mainStats: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '10px',
+    textAlign: 'center'
+  },
+  statBox: {
+    display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center'
   },
-  loadingText: {
-    color: '#FFD700' // Groc
+  // NÚMEROS EN BLANC
+  statValue: {
+    fontSize: '1.2em',
+    fontWeight: 'bold',
+    color: '#FFFFFF'
   },
-  errorText: {
-    color: '#FF6B6B' // Vermell
-  }
+  // LLETRES EN BLANC
+  statLabel: {
+    fontSize: '0.8em',
+    textTransform: 'uppercase',
+    color: '#FFFFFF',
+    marginTop: '4px',
+    fontWeight: '500'
+  },
+  secondaryStats: {
+    display: 'flex',
+    gap: '20px',
+    fontSize: '0.9em',
+    color: '#e0e0e0',
+    marginTop: '5px',
+    justifyContent: 'flex-start'
+  },
+  loadingText: { color: '#FFD700', textAlign: 'center' },
+  errorText: { color: '#FF6B6B', textAlign: 'center' }
 };
 
 function Profile() {
-  // 👇 --- NOU ESTAT PER LES DADES D'USUARI --- 👇
   const [currentUser, setCurrentUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
 
-  // ESTAT PER A STRAVA (com abans)
   const [stravaActivities, setStravaActivities] = useState([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const [stravaError, setStravaError] = useState(null);
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
-  // 👇 --- NOU EFECTE PER BUSCAR L'USUARI --- 👇
+  const navigate = useNavigate();
+
+  // --- GESTIÓ D'USUARI ---
   useEffect(() => {
-    // Escutem canvis en l'autenticació
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Tenim l'usuari (de Auth)
         setCurrentUser(user);
-        
-        // Ara busquem les seves dades a Firestore
         const userDocRef = doc(db, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
-        
         if (userDocSnap.exists()) {
           setUserData(userDocSnap.data());
-        } else {
-          console.error("Error: No s'ha trobat el document de l'usuari a Firestore.");
-          setStravaError("Error al carregar les dades de l'usuari.");
         }
       } else {
-        // No hi ha usuari (ha tancat sessió)
         setCurrentUser(null);
         setUserData(null);
-        // Aquí podries redirigir a /login
+        navigate('/login');
       }
       setIsLoadingUser(false);
     });
+    return () => unsubscribe();
+  }, [navigate]);
 
-    return () => unsubscribe(); // Netegem l'oient
-  }, []); // S'executa només un cop
-
-
-  // Comprovem si l'usuari JA està connectat a Strava
   const isStravaConnected = userData && userData.strava;
 
-  // 👇 --- EFECTE PER DEMANAR DADES DE STRAVA (com abans) --- 👇
+  // --- GESTIÓ DE STRAVA ---
   useEffect(() => {
-    // Només executem si l'usuari ESTÀ connectat i NO hem carregat dades
-    if (isStravaConnected && stravaActivities.length === 0) {
-      
+    if (isStravaConnected && !hasAttemptedFetch && !isLoadingActivities) {
       const fetchActivities = async () => {
         setIsLoadingActivities(true);
+        setHasAttemptedFetch(true);
         setStravaError(null);
         try {
           const functions = getFunctions();
@@ -119,115 +185,166 @@ function Profile() {
           if (result.data.success) {
             setStravaActivities(result.data.activities);
           } else {
-            throw new Error("Error de la funció en retornar dades");
+            throw new Error("Error retornant dades");
           }
         } catch (error) {
-          console.error("Error al trucar a getStravaActivities:", error);
+          console.error("Error Strava:", error);
           if (error.code === 'unauthenticated') {
-             setStravaError("La teva connexió amb Strava ha caducat. Si us plau, torna a connectar.");
+             setStravaError("La teva connexió ha caducat. Torna a connectar.");
           } else {
              setStravaError("No s'han pogut carregar les activitats.");
           }
         }
         setIsLoadingActivities(false);
       };
-
       fetchActivities();
     }
-  }, [isStravaConnected, stravaActivities.length]); // Dependències de l'efecte
+  }, [isStravaConnected, hasAttemptedFetch, isLoadingActivities]);
 
-
-  // Lògica per al botó (aquesta ja la teníem)
   const handleStravaConnect = () => {
     const STRAVA_CLIENT_ID = "184885"; 
     const REDIRECT_URI = "http://localhost:3000/strava-redirect"; 
     const STRAVA_SCOPES = "read,activity:read_all"; 
-    
-    const url = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${REDIRECT_URI}&approval_prompt=force&scope=${STRAVA_SCOPES}`;
-    
-    window.location.href = url;
+    window.location.href = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${REDIRECT_URI}&approval_prompt=force&scope=${STRAVA_SCOPES}`;
   };
 
-  // Funcions per formatar (com abans)
+  // --- FUNCIONS DE FORMAT ---
   const formatDistance = (distanceInMeters) => {
     return (distanceInMeters / 1000).toFixed(2) + " km";
   };
+
+  const formatTime = (timeInSeconds) => {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = timeInSeconds % 60;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m ${seconds}s`;
+  };
+
+  const formatPace = (speedInMetersPerSecond) => {
+    if (!speedInMetersPerSecond || speedInMetersPerSecond === 0) return "-";
+    const secondsPerKm = 1000 / speedInMetersPerSecond;
+    const minutes = Math.floor(secondsPerKm / 60);
+    const seconds = Math.floor(secondsPerKm % 60);
+    const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
+    return `${minutes}:${formattedSeconds} /km`;
+  };
   
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("ca-ES", {
+      weekday: 'short', 
+      day: 'numeric', 
+      month: 'short', 
+      year: 'numeric', // 👈 HEM AFEGIT L'ANY AQUÍ
+      hour: '2-digit', 
+      minute:'2-digit'
     });
   };
 
-  // --- RENDERITZAT ---
+  // --- RENDER ---
+  if (isLoadingUser) return <div style={styles.profileContainer}><p style={styles.loadingText}>Carregant...</p></div>;
+  if (!currentUser) return <div style={styles.profileContainer}><p style={styles.errorText}>No has iniciat sessió.</p></div>;
 
-  // Mentre comprovem l'usuari
-  if (isLoadingUser) {
-    return (
-      <div style={styles.profileContainer}>
-        <p style={styles.loadingText}>Carregant perfil...</p>
-      </div>
-    );
-  }
-
-  // Si no hi ha usuari (ha tancat sessió)
-  if (!currentUser) {
-     return (
-      <div style={styles.profileContainer}>
-        <p style={styles.errorText}>No has iniciat sessió. Redirigint...</p>
-        {/* Aquí hauries de redirigir a /login */}
-      </div>
-    );
-  }
-
-  // Si hi ha usuari, mostrem el perfil
   return (
     <div style={styles.profileContainer}>
+      
+      {/* BARRA DE NAVEGACIÓ */}
+      <div style={styles.navBar}>
+        <button 
+          onClick={() => navigate('/home')} 
+          style={styles.navButton}
+        >
+          ⬅ Inici
+        </button>
+        
+        <button 
+          onClick={() => navigate('/edit-profile')} 
+          style={styles.editButton}
+        >
+          Editar Perfil ✏️
+        </button>
+      </div>
+
       <div style={styles.header}>
         <h2>El Meu Perfil</h2>
         <p>Hola, <strong>{userData ? userData.name : '...'}</strong>!</p>
-        <p>Email: {currentUser.email}</p>
       </div>
 
-      {/* SECCIÓ DE STRAVA */}
       <div style={styles.stravaSection}>
-        <h3>La teva Activitat de Strava</h3>
+        <h3>Les teves Activitats</h3>
         
-        {!isStravaConnected ? (
-          // CAS 1: L'usuari NO està connectat
+        {stravaError && (
           <>
-            <p>Connecta el teu compte de Strava per veure les teves activitats aquí.</p>
-            <button onClick={handleStravaConnect} style={styles.stravaButton}>
-              Integrar amb Strava
-            </button>
+            <p style={styles.errorText}>{stravaError}</p>
+            <button onClick={handleStravaConnect} style={styles.stravaButton}>Tornar a connectar amb Strava</button>
           </>
-        ) : (
-          // CAS 2: L'usuari SÍ que està connectat
+        )}
+
+        {isStravaConnected && !stravaError && (
           <div>
-            <p style={{ color: '#70E094' }}>Connexió amb Strava activa! ✅</p>
+            <p style={{ color: '#FFFFFF', marginBottom: '20px' }}>Strava Connectat ✅</p>
             
-            {isLoadingActivities && <p style={styles.loadingText}>Carregant activitats recents...</p>}
-            
-            {stravaError && <p style={styles.errorText}>{stravaError}</p>}
+            {isLoadingActivities && <p style={styles.loadingText}>Carregant activitats...</p>}
             
             <ul style={styles.activityList}>
               {stravaActivities.map(activity => (
                 <li key={activity.id} style={styles.activityItem}>
-                  <span>
-                    <strong>{activity.name}</strong>
-                    <br />
-                    <small>{formatDate(activity.start_date)}</small>
-                  </span>
-                  <strong>{formatDistance(activity.distance)}</strong>
+                  
+                  {/* Data amb ANY */}
+                  <div style={styles.activityTop}>
+                    <span style={styles.activityName}>{activity.name}</span>
+                    <span style={styles.activityDate}>{formatDate(activity.start_date)}</span>
+                  </div>
+
+                  <div style={styles.mainStats}>
+                    {/* Distància */}
+                    {activity.distance > 0 ? (
+                      <div style={styles.statBox}>
+                        <span style={styles.statValue}>{formatDistance(activity.distance)}</span>
+                        <span style={styles.statLabel}>Distància</span>
+                      </div>
+                    ) : (
+                       <div style={styles.statBox}><span style={styles.statLabel}>-</span></div>
+                    )}
+
+                    {/* Ritme */}
+                    {activity.average_speed > 0 ? (
+                      <div style={styles.statBox}>
+                        <span style={styles.statValue}>{formatPace(activity.average_speed)}</span>
+                        <span style={styles.statLabel}>Ritme</span>
+                      </div>
+                    ) : (
+                      <div style={styles.statBox}><span style={styles.statLabel}>-</span></div>
+                    )}
+
+                    {/* Temps */}
+                    {activity.moving_time > 0 ? (
+                      <div style={styles.statBox}>
+                        <span style={styles.statValue}>{formatTime(activity.moving_time)}</span>
+                        <span style={styles.statLabel}>Temps</span>
+                      </div>
+                    ) : (
+                      <div style={styles.statBox}><span style={styles.statLabel}>-</span></div>
+                    )}
+                  </div>
+
+                  {(activity.average_heartrate || activity.suffer_score) && (
+                    <div style={styles.secondaryStats}>
+                      {activity.average_heartrate && <span>❤️ {activity.average_heartrate.toFixed(0)} bpm</span>}
+                      {activity.suffer_score && <span>🔥 Esforç: {activity.suffer_score}</span>}
+                    </div>
+                  )}
+
                 </li>
               ))}
             </ul>
           </div>
         )}
+
+        {!isStravaConnected && !stravaError && (
+          <button onClick={handleStravaConnect} style={styles.stravaButton}>Integrar amb Strava</button>
+        )}
       </div>
-      
     </div>
   );
 }

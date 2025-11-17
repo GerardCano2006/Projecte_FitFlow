@@ -9,6 +9,7 @@ import Calendar from "./components/Calendar";
 import Ranking from "./components/Ranking";
 import Profile from "./components/Profile";
 import StravaRedirect from "./components/StravaRedirect";
+import EditProfile from './components/EditProfile';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/ranking" element={<Ranking />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/strava-redirect" element={<StravaRedirect />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
       </Routes>
     </Router>
   );
