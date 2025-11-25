@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
-import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore"; // Assegura't que getDoc estigui importat
+import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import "./Calendar.css";
 
@@ -8,7 +8,6 @@ function Calendar() {
   const [weekClasses, setWeekClasses] = useState({});
   const [myBookings, setMyBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  // Hem eliminat selectedDay perquè no s'estava utilitzant al codi original
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,13 +17,25 @@ function Calendar() {
       return;
     }
     loadWeekClasses();
-    loadMyBookings(user.uid); // Passem el UID de l'usuari
+    loadMyBookings(user.uid);
   }, [navigate]);
+
+  // 👇 --- NOVA FUNCIÓ D'AJUDA --- 👇
+  /**
+   * Converteix un objecte Date a un string local YYYY-MM-DD
+   * Evita problemes de zona horària de .toISOString()
+   */
+  const getLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // +1 perquè els mesos són 0-11
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const getWeekDays = () => {
     const days = [];
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0); // Mitjanit, hora local
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
@@ -39,9 +50,10 @@ function Calendar() {
       const weekDays = getWeekDays();
       const startDate = weekDays[0];
       const endDate = new Date(weekDays[6]);
-      endDate.setHours(23, 59, 59, 999); // Assegura't que agafa fins al final del dia
+      endDate.setHours(23, 59, 59, 999);
 
       const classesRef = collection(db, "classes");
+      // La consulta de Firestore ja gestiona bé els objectes Date i els strings ISO
       const q = query(
         classesRef,
         where("schedule", ">=", startDate.toISOString()),
@@ -50,15 +62,28 @@ function Calendar() {
 
       const querySnapshot = await getDocs(q);
       const classesByDay = {};
+
+      // 👇 --- CANVI 1: Creem els 'buckets' (columnes) amb la data local --- 👇
       weekDays.forEach(day => {
-        classesByDay[day.toISOString().split('T')[0]] = [];
+        // Abans: classesByDay[day.toISOString().split('T')[0]] = [];
+        classesByDay[getLocalDateString(day)] = [];
       });
 
       querySnapshot.forEach((doc) => {
         const classData = { id: doc.id, ...doc.data() };
-        const classDateStr = new Date(classData.schedule).toISOString().split('T')[0];
+        // Creem un objecte Date a partir del text de Firestore (que és 'datetime-local')
+        // Ex: "2025-11-20T11:00" -> esdevé un objecte Date local
+        const classDate = new Date(classData.schedule); 
+        
+        // 👇 --- CANVI 2: Busquem el 'bucket' amb la data local de la classe --- 👇
+        // Abans: const classDateStr = new Date(classData.schedule).toISOString().split('T')[0];
+        const classDateStr = getLocalDateString(classDate);
+        
         if (classesByDay[classDateStr]) {
           classesByDay[classDateStr].push(classData);
+        } else {
+          // Debug: si una classe no troba el seu 'bucket'
+          console.warn("Classe sense 'bucket' trobada:", classData.title, classDateStr);
         }
       });
 
@@ -75,7 +100,6 @@ function Calendar() {
 
   const loadMyBookings = async (userId) => {
     try {
-      // Accedeix directament a les reserves de l'usuari
       const userDocRef = doc(db, "users", userId);
       const userDocSnap = await getDoc(userDocRef);
 
@@ -94,6 +118,7 @@ function Calendar() {
     return myBookings.includes(classId);
   };
 
+  // Aquesta funció ja funciona bé (mostra l'hora local)
   const formatTime = (isoString) => {
     return new Date(isoString).toLocaleTimeString('ca-ES', {
       hour: '2-digit',
@@ -103,7 +128,8 @@ function Calendar() {
   };
 
   const getDayName = (date) => {
-    const days = ['DIU', 'DIL', 'DIM', 'DIM', 'DIJ', 'DIV', 'DIS'];
+    // Corregit: DIM (Dimarts) i DIM (Dimecres) eren iguals
+    const days = ['DIU', 'DIL', 'DIM', 'DC', 'DIJ', 'DIV', 'DIS'];
     return days[date.getDay()];
   };
 
@@ -123,7 +149,9 @@ function Calendar() {
       ) : (
         <div className="calendar-grid">
           {weekDays.map((day) => {
-            const dayKey = day.toISOString().split('T')[0];
+            // 👇 --- CANVI 3: Busquem el 'bucket' del dia amb la data local --- 👇
+            // Abans: const dayKey = day.toISOString().split('T')[0];
+            const dayKey = getLocalDateString(day);
             const dayClasses = weekClasses[dayKey] || [];
 
             return (
@@ -140,15 +168,11 @@ function Calendar() {
                     dayClasses.map((classItem) => {
                       const booked = isBooked(classItem.id);
 
-                      // S'HA ELIMINAT: const backgroundColor = getClassColor(classItem.title);
-                      // S'HA ELIMINAT: style={{ backgroundColor }}
-                      // Ara el CSS controlarà el fons fosc.
-
                       return (
                         <div 
                           key={classItem.id}
                           className={`mini-class-card ${booked ? 'booked' : ''}`}
-                          onClick={() => navigate('/classes')} // Envia a la pàgina de classes per gestionar
+                          onClick={() => navigate('/classes')}
                         >
                           <div className="mini-class-time">{formatTime(classItem.schedule)}</div>
                           <div className="mini-class-title">{classItem.title}</div>
