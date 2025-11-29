@@ -234,7 +234,6 @@ function ViewClasses() {
           </div>
         </div>
       ) : (
-        /* SI NO TENIM CLASSE SELECCIONADA -> MOSTREM LA LLISTA (GRID) */
         <>
           <div className="view-header">
             <h2>Classes Disponibles</h2>
