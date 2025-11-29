@@ -1,377 +1,282 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
 import { 
-  collection, 
-  getDocs, 
-  addDoc, 
-  query, 
-  where, 
-  deleteDoc, 
-  doc, 
-  updateDoc, 
-  serverTimestamp, 
-  increment,
-  getDoc  // 🔥 AFEGEIX getDoc per debug
+  collection, getDocs, query, orderBy, doc, updateDoc, 
+  arrayUnion, arrayRemove, getDoc, deleteDoc 
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import "./ViewClasses.css";
+import "./ViewClasses.css"; 
 
 function ViewClasses() {
   const [classes, setClasses] = useState([]);
   const [myBookings, setMyBookings] = useState([]);
-  const [bookingCounts, setBookingCounts] = useState({});
   const [loading, setLoading] = useState(true);
+  
+  // Aquest estat controla si veiem la llista (null) o el detall (objecte)
   const [selectedClass, setSelectedClass] = useState(null);
+  
+  const [processing, setProcessing] = useState(false);
+  const [userRole, setUserRole] = useState('client');
+  
   const navigate = useNavigate();
+  const user = auth.currentUser;
 
+  // --- 1. CARREGAR DADES (Igual que sempre) ---
   useEffect(() => {
-    const user = auth.currentUser;
     if (!user) {
       navigate("/login");
       return;
     }
-    loadClasses();
-    loadMyBookings();
-  }, [navigate]);
+    loadData();
+  }, [user, navigate]);
 
-  const loadClasses = async () => {
+  const loadData = async () => {
+    setLoading(true);
     try {
-      const querySnapshot = await getDocs(collection(db, "classes"));
-      const classesData = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (new Date(data.schedule) > new Date()) {
-          classesData.push({ id: doc.id, ...data });
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setMyBookings(data.bookedClasses || []);
+          setUserRole(data.role || 'client');
         }
-      });
-      classesData.sort((a, b) => new Date(a.schedule) - new Date(b.schedule));
-      setClasses(classesData);
-      
-      await loadBookingCounts(classesData);
-    } catch (error) {
-      console.error("Error carregant classes:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadBookingCounts = async (classesData) => {
-    const counts = {};
-    for (const classItem of classesData) {
-      const count = await getBookingCount(classItem.id);
-      counts[classItem.id] = count;
-    }
-    setBookingCounts(counts);
-  };
-
-  const loadMyBookings = async () => {
-    try {
-      const user = auth.currentUser;
-      const q = query(collection(db, "bookings"), where("userId", "==", user.uid));
+      }
+      const q = query(collection(db, "classes"), orderBy("schedule", "asc"));
       const querySnapshot = await getDocs(q);
-      
-      const bookingsData = [];
-      querySnapshot.forEach((doc) => {
-        bookingsData.push({ id: doc.id, ...doc.data() });
-      });
-      setMyBookings(bookingsData);
+      const classesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setClasses(classesData);
     } catch (error) {
-      console.error("Error carregant reserves:", error);
+      console.error("Error carregant:", error);
     }
+    setLoading(false);
   };
 
-  const getBookingCount = async (classId) => {
+  // --- 2. ACCIONS (Igual que sempre) ---
+  const handleBook = async (classItem) => {
+    if (processing) return;
+    setProcessing(true);
     try {
-      const q = query(
-        collection(db, "bookings"), 
-        where("classId", "==", classId),
-        where("status", "==", "confirmed")
-      );
-      const snapshot = await getDocs(q);
-      return snapshot.size;
-    } catch (error) {
-      console.error("Error comptant reserves:", error);
-      return 0;
-    }
-  };
-
-  const isBooked = (classId) => {
-    return myBookings.some(
-      booking => booking.classId === classId && booking.status === "confirmed"
-    );
-  };
-
-  const getBookingId = (classId) => {
-    const booking = myBookings.find(
-      b => b.classId === classId && b.status === "confirmed"
-    );
-    return booking ? booking.id : null;
-  };
-
-  // 🔥 SISTEMA DE PUNTS AMB DEBUG
-  const updateUserStats = async () => {
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        console.error("❌ Usuari no autentificat!");
-        return;
-      }
-      
-      console.log("🔥 Actualitzant punts per:", user.uid); // DEBUG
-      
+      const classRef = doc(db, "classes", classItem.id);
       const userRef = doc(db, "users", user.uid);
+      await updateDoc(classRef, { participants: arrayUnion(user.uid) });
+      await updateDoc(userRef, { bookedClasses: arrayUnion(classItem.id) });
+
+      setMyBookings([...myBookings, classItem.id]);
       
-      // 🔥 VERIFICA SI EL DOCUMENT EXISTEIX
-      const userDoc = await getDoc(userRef);
-      if (!userDoc.exists()) {
-        console.error("❌ Document d'usuari NO existeix a Firestore!");
-        return;
-      }
-      
-      await updateDoc(userRef, {
-        classesAttended: increment(1),
-        points: increment(100),
-        classesThisWeek: increment(1),
-        updatedAt: serverTimestamp()
+      // Actualitzar l'estat local
+      const updatedClasses = classes.map(c => {
+        if (c.id === classItem.id) {
+          const parts = c.participants || [];
+          return { ...c, participants: [...parts, user.uid] };
+        }
+        return c;
       });
+      setClasses(updatedClasses);
+      // Si estem veient el detall, actualitzem també l'objecte seleccionat
+      if (selectedClass && selectedClass.id === classItem.id) {
+        const updatedSelected = updatedClasses.find(c => c.id === classItem.id);
+        setSelectedClass(updatedSelected);
+      }
       
-      console.log("✅ PUNTS ACTUALITZATS: +100 pts, +1 classe"); // DEBUG
+      alert("Reserva confirmada!");
     } catch (error) {
-      console.error("💥 ERROR UPDATE PUNTS:", error.message); // DEBUG
-      console.error("Error complet:", error);
+      console.error("Error:", error);
+      alert("Error en reservar.");
     }
+    setProcessing(false);
   };
 
-  const handleBookClass = async (classItem) => {
+  const handleCancel = async (classItem) => {
+    if (processing) return;
+    setProcessing(true);
     try {
-      const user = auth.currentUser;
-      const bookingCount = bookingCounts[classItem.id] || 0;
+      const classRef = doc(db, "classes", classItem.id);
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(classRef, { participants: arrayRemove(user.uid) });
+      await updateDoc(userRef, { bookedClasses: arrayRemove(classItem.id) });
 
-      if (bookingCount >= classItem.capacity) {
-        alert("Aquesta classe està completa!");
-        return;
-      }
+      setMyBookings(myBookings.filter(id => id !== classItem.id));
 
-      console.log("📅 Reservant classe:", classItem.id); // DEBUG
-
-      await addDoc(collection(db, "bookings"), {
-        userId: user.uid,
-        classId: classItem.id,
-        status: "confirmed",
-        bookedAt: new Date().toISOString(),
-        attended: false
+      const updatedClasses = classes.map(c => {
+        if (c.id === classItem.id) {
+          const parts = c.participants || [];
+          return { ...c, participants: parts.filter(uid => uid !== user.uid) };
+        }
+        return c;
       });
-
-      // 🔥 ACTUALITZA PUNTS
-      await updateUserStats();
-
-      alert("✅ Reserva confirmada! +100 punts! 🎉");
-      loadMyBookings();
-      loadClasses();
-    } catch (error) {
-      console.error("Error reservant classe:", error);
-      alert("Error: " + error.message);
-    }
-  };
-
-  const handleCancelBooking = async (classId) => {
-    if (!window.confirm("Segur que vols cancel·lar aquesta reserva?")) {
-      return;
-    }
-
-    try {
-      const bookingId = getBookingId(classId);
-      if (bookingId) {
-        await deleteDoc(doc(db, "bookings", bookingId));
-        
-        // 🔥 RESTA PUNTS
-        const userRef = doc(db, "users", auth.currentUser.uid);
-        await updateDoc(userRef, {
-          points: increment(-50),
-          classesThisWeek: increment(-1),
-          updatedAt: serverTimestamp()
-        });
-        
-        console.log("✅ Reserva cancel·lada: -50 punts"); // DEBUG
-        alert("✅ Reserva cancel·lada (-50 punts)");
-        loadMyBookings();
-        loadClasses();
+      setClasses(updatedClasses);
+      if (selectedClass && selectedClass.id === classItem.id) {
+        const updatedSelected = updatedClasses.find(c => c.id === classItem.id);
+        setSelectedClass(updatedSelected);
       }
+
+      alert("Reserva cancel·lada.");
     } catch (error) {
-      console.error("Error cancel·lant reserva:", error);
-      alert("Error: " + error.message);
+      console.error("Error:", error);
     }
+    setProcessing(false);
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return "Today";
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return "Demà";
-    } else {
-      return date.toLocaleDateString('ca-ES', { weekday: 'short', month: 'short', day: 'numeric' });
-    }
+  const handleDelete = async (classId) => {
+    if(!window.confirm("Eliminar classe?")) return;
+    try {
+      await deleteDoc(doc(db, "classes", classId));
+      setClasses(classes.filter(c => c.id !== classId));
+      setSelectedClass(null); // Tornar a la llista si esborrem la que veiem
+    } catch (error) { console.error(error); }
   };
 
-  const formatTime = (dateString) => {
-    return new Date(dateString).toLocaleTimeString('ca-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
+  const formatDate = (iso) => new Date(iso).toLocaleDateString("ca-ES", { weekday: 'short', day: 'numeric', month: 'short' });
+  const formatTime = (iso) => new Date(iso).toLocaleTimeString("ca-ES", { hour: '2-digit', minute: '2-digit' });
 
-  if (loading) {
-    return <div className="loading">Carregant classes...</div>;
-  }
-
-  if (selectedClass) {
-    const booked = isBooked(selectedClass.id);
-    const bookingCount = bookingCounts[selectedClass.id] || 0;
-    const availabilityPercentage = (bookingCount / selectedClass.capacity) * 100;
-
-    return (
-      <div className="class-detail-container">
-        <button className="btn-back-detail" onClick={() => setSelectedClass(null)}>
-          ← Tornar
-        </button>
-        
-        <div className="class-detail-card">
-          <div className="class-image">
-            <img 
-              src={selectedClass.imageUrl || "https://source.unsplash.com/800x400/?gym,fitness"} 
-              alt={selectedClass.title}
-            />
-          </div>
-
-          <div className="class-detail-content">
-            <h2>{selectedClass.title}</h2>
-            
-            <div className="trainer-info">
-              <span className="trainer-name">with {selectedClass.trainerName || "Instructor"}</span>
-              <span className="rating">⭐ {selectedClass.rating || 4.5}</span>
-            </div>
-
-            <div className="class-meta">
-              <div className="meta-item">
-                <span className="icon">📅</span>
-                <span>{formatDate(selectedClass.schedule)}, {formatTime(selectedClass.schedule)}</span>
-              </div>
-              <div className="meta-item">
-                <span className="icon">⏱️</span>
-                <span>{selectedClass.duration} min</span>
-              </div>
-              <div className="meta-item">
-                <span className="icon">📍</span>
-                <span>{selectedClass.location}</span>
-              </div>
-              <div className="meta-item">
-                <span className="icon">👥</span>
-                <span>{bookingCount}/{selectedClass.capacity} joined</span>
-              </div>
-            </div>
-
-            <div className="availability-section">
-              <h4>Aforament</h4>
-              <div className="availability-bar">
-                <div 
-                  className="availability-fill" 
-                  style={{ width: `${availabilityPercentage}%` }}
-                ></div>
-              </div>
-            </div>
-
-            <div className="about-section">
-              <h3>Sobre aquesta sessió:</h3>
-              <p>{selectedClass.description}</p>
-            </div>
-
-            {selectedClass.tags && selectedClass.tags.length > 0 && (
-              <div className="tags-section">
-                <h4>Material necessari</h4>
-                <div className="tags">
-                  {selectedClass.tags.map((tag, index) => (
-                    <span key={index} className="tag">{tag}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="action-buttons">
-              {booked ? (
-                <button className="btn-cancel" onClick={() => handleCancelBooking(selectedClass.id)}>
-                  Donar-se de baixa
-                </button>
-              ) : (
-                <button 
-                  className="btn-book" 
-                  onClick={() => handleBookClass(selectedClass)}
-                  disabled={bookingCount >= selectedClass.capacity}
-                >
-                  {bookingCount >= selectedClass.capacity ? "Class Full" : "Book Now"}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // --- RENDERITZAT ---
 
   return (
     <div className="view-classes-container">
-      <div className="view-header">
-        <h2>Classes Disponibles</h2>
-        <button className="btn-back" onClick={() => navigate("/home")}>
-          Tornar
-        </button>
-      </div>
+      
+      {/* SI TENIM UNA CLASSE SELECCIONADA -> MOSTREM EL DETALL (Pantalla Completa) */}
+      {selectedClass ? (
+        <div className="detail-view">
+          <div className="detail-header">
+            {/* Botó per tornar enrere a la llista (tanca el detall) */}
+            <button className="btn-back" onClick={() => setSelectedClass(null)}>
+              ⬅ Tornar a la llista
+            </button>
+          </div>
 
-      {classes.length === 0 ? (
-        <p className="no-classes">No hi ha classes programades en aquest moment.</p>
-      ) : (
-        <div className="classes-grid">
-          {classes.map((classItem) => {
-            const booked = isBooked(classItem.id);
-            const bookingCount = bookingCounts[classItem.id] || 0;
-            
-            return (
-              <div 
-                key={classItem.id}
-                className={`class-card ${booked ? 'booked' : ''}`}
-                onClick={() => setSelectedClass(classItem)}
-              >
-                <div className="class-card-image">
-                  <img 
-                    src={classItem.imageUrl || "https://source.unsplash.com/800x400/?gym,fitness"} 
-                    alt={classItem.title}
-                  />
-                  {booked && <div className="booked-badge">Reservat</div>}
-                </div>
+          <div className="detail-image-container">
+            <img 
+              src={selectedClass.imageUrl || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80"} 
+              alt={selectedClass.title} 
+              className="detail-image"
+            />
+            {myBookings.includes(selectedClass.id) && <div className="booked-badge">Reservat</div>}
+          </div>
 
-                <div className="class-card-content">
-                  <h3>{classItem.title}</h3>
-                  
-                  <div className="trainer-info-small">
-                    <span>amb {classItem.trainerName || "Instructor"}</span>
-                    <span className="rating-small">⭐ {classItem.rating || 4.5}</span>
-                  </div>
+          <div className="detail-title">
+            <h2>{selectedClass.title}</h2>
+            <span className="detail-trainer">Amb {selectedClass.trainerName || "Instructor FitFlow"}</span>
+          </div>
 
-                  <div className="class-quick-info">
-                    <span>📅 {formatDate(classItem.schedule)}, {formatTime(classItem.schedule)}</span>
-                    <span>⏱️ {classItem.duration} min</span>
-                    <span>📍 {classItem.location}</span>
-                    <span>👥 {bookingCount}/{classItem.capacity}</span>
-                  </div>
-                </div>
+          {/* Descripció */}
+          <div className="detail-section">
+            <h4>Descripció</h4>
+            <p>{selectedClass.description || "Entrenament d'alta intensitat dissenyat per millorar la resistència i la força."}</p>
+          </div>
+
+          {/* Tags */}
+          <div className="detail-section">
+            <h4>Etiquetes</h4>
+            <div className="tags-container">
+               {(selectedClass.tags || ["Fitness", "Cardio"]).map((tag, i) => (
+                 <span key={i} className="tag-pill">{tag}</span>
+               ))}
+            </div>
+          </div>
+
+          {/* Info Grid */}
+          <div className="detail-section">
+            <h4>Detalls de la Sessió</h4>
+            <div className="info-grid">
+              <div className="info-item">
+                <span className="info-label">Dia</span>
+                <span className="info-value">{formatDate(selectedClass.schedule)}</span>
               </div>
-            );
-          })}
+              <div className="info-item">
+                <span className="info-label">Hora</span>
+                <span className="info-value">{formatTime(selectedClass.schedule)}</span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Lloc</span>
+                <span className="info-value">{selectedClass.location || "Sala 1"}</span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Aforament</span>
+                <span className="info-value">
+                  {(selectedClass.participants || []).length} / {selectedClass.maxParticipants || 20}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Material */}
+          <div className="detail-section" style={{ borderLeft: '4px solid #667eea' }}>
+            <h4>Material Necessari</h4>
+            <p>{selectedClass.equipment || "Roba còmoda, tovallola i aigua."}</p>
+          </div>
+
+          {/* Botons d'Acció GRANS */}
+          <div className="detail-actions">
+            {myBookings.includes(selectedClass.id) ? (
+              <button 
+                className="btn-cancel-large" 
+                onClick={() => handleCancel(selectedClass)}
+                disabled={processing}
+              >
+                {processing ? "Processant..." : "Cancel·lar Reserva"}
+              </button>
+            ) : (
+              <button 
+                className="btn-book-large"
+                onClick={() => handleBook(selectedClass)}
+                disabled={processing || (selectedClass.participants || []).length >= (selectedClass.maxParticipants || 20)}
+              >
+                {processing ? "Processant..." : 
+                 (selectedClass.participants || []).length >= (selectedClass.maxParticipants || 20) ? "Classe Plena" : "Reservar Plaça"}
+              </button>
+            )}
+
+            {(userRole === 'admin' || userRole === 'trainer') && (
+              <button className="btn-cancel-large" style={{borderColor:'#ff6b6b', color:'#ff6b6b'}} onClick={() => handleDelete(selectedClass.id)}>
+                Eliminar Classe (Admin)
+              </button>
+            )}
+          </div>
         </div>
+      ) : (
+        /* SI NO TENIM CLASSE SELECCIONADA -> MOSTREM LA LLISTA (GRID) */
+        <>
+          <div className="view-header">
+            <h2>Classes Disponibles</h2>
+            <button className="btn-back" onClick={() => navigate("/home")}>
+              ⬅ Tornar a Inici
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="loading">Carregant classes...</div>
+          ) : classes.length === 0 ? (
+            <div className="no-classes">No hi ha classes disponibles.</div>
+          ) : (
+            <div className="classes-grid">
+              {classes.map((classItem) => {
+                const isBooked = myBookings.includes(classItem.id);
+                const participants = classItem.participants || [];
+                
+                return (
+                  <div key={classItem.id} className="class-card" onClick={() => setSelectedClass(classItem)}>
+                    <div className="class-card-image">
+                      <img 
+                        src={classItem.imageUrl || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=500&q=60"} 
+                        alt={classItem.title} 
+                      />
+                      {isBooked && <div className="booked-badge">Reservat</div>}
+                    </div>
+                    <div className="class-card-content">
+                      <h3>{classItem.title}</h3>
+                      <div className="trainer-info-card">Amb {classItem.trainerName || "Instructor"}</div>
+                      <div className="quick-stats">
+                        <span>📅 {formatDate(classItem.schedule)}</span>
+                        <span>⏰ {formatTime(classItem.schedule)}</span>
+                        <span>👥 {participants.length}/{classItem.maxParticipants || 20}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

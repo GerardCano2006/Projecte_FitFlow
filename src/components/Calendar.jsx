@@ -149,8 +149,7 @@ function Calendar() {
       ) : (
         <div className="calendar-grid">
           {weekDays.map((day) => {
-            // 👇 --- CANVI 3: Busquem el 'bucket' del dia amb la data local --- 👇
-            // Abans: const dayKey = day.toISOString().split('T')[0];
+
             const dayKey = getLocalDateString(day);
             const dayClasses = weekClasses[dayKey] || [];
 

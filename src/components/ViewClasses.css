@@ -1,351 +1,281 @@
+/* ===== 1. FONS PRINCIPAL ===== */
 .view-classes-container {
-  max-width: 1200px;
-  margin: 20px auto;
-  padding: 20px;
+  min-height: 100vh;
+  background-color: #1A1A2E; /* Fons Fosc */
+  color: #E0E0E0;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
 }
 
+/* ===== 2. CAPÇALERA (Només es veu a la llista) ===== */
 .view-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .view-header h2 {
   margin: 0;
-  color: #333;
+  color: white;
   font-size: 28px;
+  font-weight: 700;
 }
 
+/* Botó Tornar Genèric */
 .btn-back {
   padding: 10px 20px;
-  background-color: #6c757d;
-  color: white;
-  border: none;
+  background-color: transparent;
+  color: #c0c0e0;
+  border: 1px solid #3a3a63;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.3s;
+  transition: all 0.2s;
 }
-
 .btn-back:hover {
-  background-color: #5a6268;
+  border-color: white;
+  color: white;
 }
 
-.loading {
-  text-align: center;
-  margin-top: 50px;
-  font-size: 18px;
-  color: #666;
-}
-
-.no-classes {
-  text-align: center;
-  color: #999;
-  font-size: 16px;
-  margin-top: 50px;
-}
-
+/* ===== 3. GRAELLA DE CLASSES (La llista) ===== */
 .classes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
+/* Targeta de la llista (Resum) */
 .class-card {
-  background: #3a3a63;
-  border-radius: 12px;
+  background-color: #2C2C4E;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid #3a3a63;
   cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
 }
-
 .class-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-}
-
-.class-card.booked {
-  border: 2px solid #28a745;
+  border-color: #667eea;
 }
 
 .class-card-image {
+  height: 160px;
+  background-color: #1f1f3d;
   position: relative;
-  width: 100%;
-  height: 180px;
-  overflow: hidden;
 }
-
 .class-card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
 .booked-badge {
   position: absolute;
   top: 10px;
   right: 10px;
   background-color: #28a745;
   color: white;
-  padding: 5px 12px;
-  border-radius: 20px;
+  padding: 4px 10px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: bold;
 }
 
 .class-card-content {
-  padding: 16px;
+  padding: 20px;
 }
-
 .class-card-content h3 {
-  margin: 0 0 8px 0;
+  margin: 0 0 10px 0;
   color: white;
   font-size: 20px;
 }
 
-.trainer-info-small {
+/* Info ràpida a la targeta */
+.trainer-info-card {
+  font-size: 14px;
+  color: #a0a0b0;
+  margin-bottom: 10px;
+}
+.quick-stats {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  font-size: 14px;
-  color: white;
-}
-
-.rating-small {
-  color: #ffc107;
-  font-weight: bold;
-}
-
-.class-quick-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
   font-size: 13px;
-  color: white;
+  color: #c0c0e0;
+  border-top: 1px solid #3a3a63;
+  padding-top: 10px;
+  margin-top: 10px;
 }
 
-/* Detall de la classe */
-.class-detail-container {
+/* =========================================================
+   ===== 4. VISTA DE DETALL (PANTALLA COMPLETA) ===== 
+   ========================================================= */
+
+.detail-view {
   max-width: 800px;
-  margin: 20px auto;
-  padding: 20px;
+  margin: 0 auto;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-.btn-back-detail {
-  padding: 8px 16px;
-  background-color: #f0f0f0;
-  color: #333;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header del detall (Botó tornar enrere) */
+.detail-header {
   margin-bottom: 20px;
-  transition: background-color 0.3s;
 }
 
-.btn-back-detail:hover {
-  background-color: #e0e0e0;
-}
-
-.class-detail-card {
-  background: white;
+/* Imatge Gran de Capçalera */
+.detail-image-container {
+  width: 100%;
+  height: 250px; /* Imatge gran com a la captura */
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  position: relative;
 }
 
-.class-image {
-  width: 100%;
-  height: 300px;
-  overflow: hidden;
-}
-
-.class-image img {
+.detail-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.class-detail-content {
-  padding: 30px;
-}
-
-.class-detail-content h2 {
-  margin: 0 0 10px 0;
-  color: #333;
+/* Títol i Instructor */
+.detail-title h2 {
   font-size: 32px;
+  color: white;
+  margin: 0 0 8px 0;
 }
 
-.trainer-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.detail-trainer {
+  font-size: 18px;
+  color: #667eea; /* Color accentuat */
   margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e0e0e0;
+  display: block;
 }
 
-.trainer-name {
-  color: #666;
-  font-size: 16px;
+/* Caixes d'informació (Descripció, Material, etc.) */
+.detail-section {
+  background-color: #2C2C4E; /* Caixa fosca */
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #3a3a63;
 }
 
-.rating {
-  color: #ffc107;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.class-meta {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #555;
-  font-size: 14px;
-}
-
-.icon {
-  font-size: 18px;
-}
-
-.availability-section {
-  margin-bottom: 25px;
-}
-
-.availability-section h4 {
+.detail-section h4 {
   margin: 0 0 10px 0;
-  color: #333;
-  font-size: 16px;
+  color: #a0a0b0;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 1px;
 }
 
-.availability-bar {
-  width: 100%;
-  height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.availability-fill {
-  height: 100%;
-  background-color: #007bff;
-  transition: width 0.3s;
-}
-
-.about-section {
-  margin-bottom: 25px;
-}
-
-.about-section h3 {
-  margin: 0 0 12px 0;
-  color: #333;
-  font-size: 20px;
-}
-
-.about-section p {
-  color: #666;
+.detail-section p {
+  color: #e0e0e0;
   line-height: 1.6;
   font-size: 15px;
+  margin: 0;
 }
 
-.tags-section {
-  margin-bottom: 25px;
-}
-
-.tags-section h4 {
-  margin: 0 0 10px 0;
-  color: #333;
-  font-size: 16px;
-}
-
-.tags {
+/* Tags */
+.tags-container {
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-top: 5px;
 }
-
-.tag {
-  background-color: #f0f0f0;
-  color: #555;
+.tag-pill {
+  background: #1A1A2E;
+  border: 1px solid #3a3a63;
+  color: #c0c0e0;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 13px;
 }
 
-.equipment-note {
-  color: #999;
-  font-size: 12px;
-  font-style: italic;
-  margin: 0;
+/* Graella de Dades (Dia, Hora, Lloc) */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
-.action-buttons {
+.info-item {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  flex-direction: column;
 }
 
-.btn-book,
-.btn-cancel {
-  flex: 1;
-  padding: 14px 20px;
+.info-label {
+  color: #a0a0b0;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.info-value {
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Botons d'acció grans al final */
+.detail-actions {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.btn-book-large {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-book-large:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+.btn-book-large:disabled {
+  background: #3a3a63;
+  color: #888;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-cancel-large {
+  width: 100%;
+  padding: 18px;
+  background: rgba(255, 107, 107, 0.1);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 12px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s;
 }
-
-.btn-book {
-  background-color: #007bff;
+.btn-cancel-large:hover {
+  background: #ff6b6b;
   color: white;
 }
 
-.btn-book:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.btn-book:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.btn-cancel {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-cancel:hover {
-  background-color: #c82333;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .classes-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .class-meta {
-    grid-template-columns: 1fr;
-  }
-  
-  .class-detail-content {
-    padding: 20px;
-  }
-  
-  .class-detail-content h2 {
-    font-size: 24px;
-  }
-}
+/* Loading */
+.loading, .no-classes { text-align: center; color: #888; margin-top: 50px; }
