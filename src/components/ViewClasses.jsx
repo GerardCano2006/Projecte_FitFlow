@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
 import { 
   collection, getDocs, query, orderBy, doc, updateDoc, 
-  arrayUnion, arrayRemove, getDoc, deleteDoc 
+  arrayUnion, arrayRemove, getDoc, deleteDoc, addDoc // 👈 Afegit addDoc
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import "./ViewClasses.css"; 
@@ -12,16 +12,16 @@ function ViewClasses() {
   const [myBookings, setMyBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Aquest estat controla si veiem la llista (null) o el detall (objecte)
   const [selectedClass, setSelectedClass] = useState(null);
   
   const [processing, setProcessing] = useState(false);
   const [userRole, setUserRole] = useState('client');
+  const [userName, setUserName] = useState(''); // 👈 Nou estat pel nom
   
   const navigate = useNavigate();
   const user = auth.currentUser;
 
-  // --- 1. CARREGAR DADES (Igual que sempre) ---
+  // --- CARREGAR DADES ---
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -39,6 +39,7 @@ function ViewClasses() {
           const data = userDoc.data();
           setMyBookings(data.bookedClasses || []);
           setUserRole(data.role || 'client');
+          setUserName(data.name || 'Usuari'); // 👈 Guardem el nom
         }
       }
       const q = query(collection(db, "classes"), orderBy("schedule", "asc"));
@@ -51,7 +52,25 @@ function ViewClasses() {
     setLoading(false);
   };
 
-  // --- 2. ACCIONS (Igual que sempre) ---
+  // --- FUNCIÓ PER GUARDAR EL LOG (Rastre) ---
+  const logAction = async (actionType, classItem) => {
+    try {
+      await addDoc(collection(db, "booking_logs"), {
+        action: actionType, // 'book' o 'cancel'
+        classId: classItem.id,
+        classTitle: classItem.title,
+        trainerName: classItem.trainerName || "Instructor",
+        userId: user.uid,
+        userName: userName,
+        timestamp: new Date() // Data i hora actual
+      });
+      console.log(`Log creat: ${actionType} - ${classItem.title}`);
+    } catch (error) {
+      console.error("Error creant log:", error);
+    }
+  };
+
+  // --- ACCIONS ---
   const handleBook = async (classItem) => {
     if (processing) return;
     setProcessing(true);
@@ -72,12 +91,14 @@ function ViewClasses() {
         return c;
       });
       setClasses(updatedClasses);
-      // Si estem veient el detall, actualitzem també l'objecte seleccionat
       if (selectedClass && selectedClass.id === classItem.id) {
         const updatedSelected = updatedClasses.find(c => c.id === classItem.id);
         setSelectedClass(updatedSelected);
       }
       
+      // 👇 GUARDEM EL LOG DE RESERVA
+      await logAction('book', classItem);
+
       alert("Reserva confirmada!");
     } catch (error) {
       console.error("Error:", error);
@@ -110,9 +131,12 @@ function ViewClasses() {
         setSelectedClass(updatedSelected);
       }
 
+      // 👇 GUARDEM EL LOG DE CANCEL·LACIÓ
+      await logAction('cancel', classItem);
+
       alert("Reserva cancel·lada.");
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error cancel·lant:", error);
     }
     setProcessing(false);
   };
@@ -122,23 +146,20 @@ function ViewClasses() {
     try {
       await deleteDoc(doc(db, "classes", classId));
       setClasses(classes.filter(c => c.id !== classId));
-      setSelectedClass(null); // Tornar a la llista si esborrem la que veiem
+      setSelectedClass(null); 
     } catch (error) { console.error(error); }
   };
 
   const formatDate = (iso) => new Date(iso).toLocaleDateString("ca-ES", { weekday: 'short', day: 'numeric', month: 'short' });
   const formatTime = (iso) => new Date(iso).toLocaleTimeString("ca-ES", { hour: '2-digit', minute: '2-digit' });
 
-  // --- RENDERITZAT ---
-
+  // --- RENDERITZAT (IDÈNTIC A L'ANTERIOR) ---
   return (
     <div className="view-classes-container">
       
-      {/* SI TENIM UNA CLASSE SELECCIONADA -> MOSTREM EL DETALL (Pantalla Completa) */}
       {selectedClass ? (
         <div className="detail-view">
           <div className="detail-header">
-            {/* Botó per tornar enrere a la llista (tanca el detall) */}
             <button className="btn-back" onClick={() => setSelectedClass(null)}>
               ⬅ Tornar a la llista
             </button>
@@ -158,13 +179,11 @@ function ViewClasses() {
             <span className="detail-trainer">Amb {selectedClass.trainerName || "Instructor FitFlow"}</span>
           </div>
 
-          {/* Descripció */}
           <div className="detail-section">
             <h4>Descripció</h4>
             <p>{selectedClass.description || "Entrenament d'alta intensitat dissenyat per millorar la resistència i la força."}</p>
           </div>
 
-          {/* Tags */}
           <div className="detail-section">
             <h4>Etiquetes</h4>
             <div className="tags-container">
@@ -174,7 +193,6 @@ function ViewClasses() {
             </div>
           </div>
 
-          {/* Info Grid */}
           <div className="detail-section">
             <h4>Detalls de la Sessió</h4>
             <div className="info-grid">
@@ -199,13 +217,11 @@ function ViewClasses() {
             </div>
           </div>
 
-          {/* Material */}
           <div className="detail-section" style={{ borderLeft: '4px solid #667eea' }}>
             <h4>Material Necessari</h4>
             <p>{selectedClass.equipment || "Roba còmoda, tovallola i aigua."}</p>
           </div>
 
-          {/* Botons d'Acció GRANS */}
           <div className="detail-actions">
             {myBookings.includes(selectedClass.id) ? (
               <button 

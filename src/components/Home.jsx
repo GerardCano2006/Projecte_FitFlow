@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { auth, db } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig"; 
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import "./Home.css"; // Continuem utilitzant el mateix CSS, que modificarem
+import "./Home.css";
 
 function Home() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // 👇 CÀRREGA DE DADES USUARI
   useEffect(() => {
     const loadUserData = async () => {
       try {
@@ -24,8 +25,6 @@ function Home() {
 
         if (docSnap.exists()) {
           setUserData(docSnap.data());
-        } else {
-          console.log("No s'han trobat dades de l'usuari");
         }
       } catch (error) {
         console.error("Error carregant dades:", error);
@@ -85,8 +84,18 @@ function Home() {
         <h3>Què vols fer avui?</h3>
         
         {userData?.role === "entrenador" ? (
-          // CORREGIT: Ara és una graella de 2 columnes
+          /* ===== BOTONS DE L'ENTRENADOR ===== */
           <div className="buttons-grid trainer-grid">
+            
+            {/* 👇 EL BOTÓ IMPORTANT: BÚSTIA DE NOTIFICACIONS */}
+            <button 
+              className="action-btn" 
+              onClick={() => navigate("/notifications")}
+            >
+              <span className="btn-icon">📬</span>
+              Notificacions
+            </button>
+
             <button 
               className="action-btn" 
               onClick={() => navigate("/manage-classes")}
@@ -94,7 +103,7 @@ function Home() {
               <span className="btn-icon">📋</span>
               Gestionar Classes
             </button>
-            {/* 👈 BOTÓ AFEGIT */}
+
             <button 
               className="action-btn" 
               onClick={() => navigate("/profile")}
@@ -104,7 +113,7 @@ function Home() {
             </button>
           </div>
         ) : (
-          // Graella 2x2 per Clients
+          /* ===== BOTONS DEL CLIENT ===== */
           <div className="buttons-grid client-grid">
             <button 
               className="action-btn" 
