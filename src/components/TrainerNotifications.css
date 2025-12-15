@@ -1,0 +1,107 @@
+/* TrainerNotifications.css */
+
+.manage-container {
+  min-height: 100vh;
+  background-color: #1E1E2E; /* Fons fosc estàndard de l'app */
+  color: #E0E0E0;
+  padding: 20px;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+.manage-content {
+  margin: 0 auto;
+  background-color: #27273E; /* Targeta una mica més clara */
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* --- CAPÇALERA --- */
+.manage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #3e3e50;
+  padding-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.manage-header h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+}
+
+/* Agrupació dels botons a la dreta */
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* --- BOTONS --- */
+.btn-back, .btn-clean {
+  background-color: transparent;
+  border: 1px solid #5c5c70;
+  color: #a0a0b0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-back:hover {
+  background-color: #3e3e50;
+  color: white;
+  border-color: white;
+}
+
+/* Estil específic pel botó de netejar */
+.btn-clean {
+  border-color: #ef4444; /* Vermell suau */
+  color: #fca5a5;
+}
+
+.btn-clean:hover:not(:disabled) {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-clean:disabled {
+  border-color: #3e3e50;
+  color: #555;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* --- LLISTA --- */
+.classes-list h3 {
+  color: #a0a0b0;
+  font-size: 16px;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.class-item {
+  background-color: #151520;
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 8px;
+  /* La vora de color es posa inline al React */
+}
+
+.class-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.class-details p {
+  line-height: 1.5;
+}

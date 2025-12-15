@@ -1,173 +1,291 @@
-/* ===== CONTENIDOR PRINCIPAL (Dark Mode) ===== */
+/* ===== RESET GLOBAL ===== */
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  /* 👇 CANVI IMPORTANT: Abans era hidden, ara 'auto' per permetre scroll */
+  overflow-x: hidden; 
+  overflow-y: auto; 
+  background-color: #0f0f1a;
+}
+
+/* ===== LAYOUT PRINCIPAL ===== */
 .home-container {
-  min-height: 100vh;
-  /* Fons fosc com a la imatge */
-  background: #1A1A2E; 
-  padding: 24px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  /* 👇 CANVI: Fem servir min-height perquè si el contingut és llarg, la web creixi */
+  min-height: 100vh; 
+  height: auto;
+  width: 100vw;
+  font-family: 'Segoe UI', Roboto, sans-serif;
   color: white;
+  background: #0f0f1a;
+}
+
+/* ===== BARRA LATERAL (ESQUERRA) ===== */
+.stats-card {
+  width: 280px; 
+  flex-shrink: 0; 
+  background: #151520;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
-}
-
-.loading-screen {
-  display: flex;
+  padding: 60px 0; 
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: #1A1A2E;
-  color: white;
-  font-size: 20px;
+  /* Assegurem que la barra lateral també creixi amb el contingut */
+  min-height: 100vh; 
 }
 
-/* ===== NOU HEADER (Benvinguda + Avatar) ===== */
-.hero-section {
+/* Contenidor dels números */
+.stats-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.hero-content h1 {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-  color: white;
-}
-
-.hero-subtitle {
-  font-size: 16px;
-  opacity: 0.8;
-  margin: 0;
-  font-weight: 400;
-  color: #c0c0e0;
-}
-
-.avatar-placeholder {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: 600;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* ===== NOVA TARGETA D'ESTADÍSTIQUES ===== */
-.stats-card {
-  /* El gradient que abans era el fons */
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
-  padding: 24px;
-  margin-bottom: 32px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  box-shadow: 0 10px 30px rgba(118, 75, 162, 0.4);
+  flex-direction: column;
+  gap: 50px; 
+  width: 100%;
+  margin-bottom: 60px; 
 }
 
 .stat-item {
   text-align: center;
+  position: relative;
+  width: 100%;
+}
+
+/* Línia decorativa sota cada número */
+.stat-item::after {
+  content: '';
+  display: block;
+  width: 30px;
+  height: 2px;
+  background: #2C2C4E;
+  margin: 20px auto 0;
 }
 
 .stat-value {
-  font-size: 26px;
-  font-weight: 700;
-  color: white;
+  font-size: 48px; 
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(135deg, #fff 20%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   display: block;
 }
 
 .stat-label {
-  font-size: 13px;
-  color: white;
-  opacity: 0.9;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 700;
+  color: #8888aa;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 10px;
+  display: block;
 }
 
-/* ===== NOUS BOTONS D'ACCIÓ ===== */
-.actions-section {
-  flex-grow: 1; /* Ocupa l'espai restant */
-}
-
-.actions-section h3 {
-  font-size: 20px;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 20px;
-}
-
-.buttons-grid {
-  display: grid;
-  gap: 16px;
-}
-
-/* Graella 2x2 per clients */
-.buttons-grid.client-grid {
-  grid-template-columns: 1fr 1fr;
-}
-
-/* Graella d'1 columna per entrenadors */
-.buttons-grid.trainer-grid {
-  grid-template-columns: 1fr;
-}
-
-.action-btn {
-  /* Fons dels botons (fosc, però diferent del fons general) */
-  background: #2C2C4E; 
-  color: white;
-  border: none;
-  border-radius: 16px;
-  
-  /* Per fer-los quadrats */
-  aspect-ratio: 1 / 1; 
-
-  /* Per centrar icona i text */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  padding: 10px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.action-btn:hover {
-  transform: translateY(-5px);
-  background: #3a3a63;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-.btn-icon {
-  font-size: 32px;
-  margin-bottom: 12px;
-  line-height: 1;
-}
-
-/* ===== BOTÓ DE LOGOUT ===== */
+/* BOTÓ LOGOUT */
 .logout-btn {
+  margin-top: 20px; 
   background: transparent;
-  color: #ff6b6b; /* Color vermellós per logout */
-  border: 2px solid #ff6b6b;
-  padding: 14px 20px;
-  border-radius: 12px;
-  font-size: 16px;
+  color: #ff6b6b; 
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  padding: 10px 24px;
+  border-radius: 30px; 
   font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
   cursor: pointer;
-  width: 100%;
-  margin-top: 32px;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .logout-btn:hover {
   background: #ff6b6b;
   color: white;
+  box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+}
+
+/* ===== CONTINGUT PRINCIPAL (DRETA) ===== */
+.main-content {
+  flex-grow: 1; 
+  display: flex;
+  flex-direction: column;
+  /* 👇 CANVI: Traiem el scroll intern i deixem que la pàgina mani */
+  height: auto; 
+  overflow: visible; 
+  background: #0f0f1a; 
+}
+
+/* HEADER */
+.hero-section {
+  min-height: 180px; 
+  background: 
+    linear-gradient(to right, rgba(15, 15, 26, 0.9) 0%, rgba(15, 15, 26, 0.5) 100%),
+    url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 60px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.hero-content h1 {
+  font-size: 42px;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0;
+  font-style: italic;
+  letter-spacing: -1px;
+}
+
+.hero-subtitle {
+  font-size: 14px;
+  color: #764ba2;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.avatar-placeholder {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+/* ZONA BOTONS */
+.actions-section {
+  padding: 40px 60px;
+  flex-grow: 1; 
+}
+
+.actions-section h3 {
+  font-size: 14px;
+  color: #666680;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+  border-left: 3px solid #764ba2;
+  padding-left: 15px;
+}
+
+.buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+  gap: 25px;
+  padding-bottom: 40px;
+}
+
+/* ESTIL TARGETES */
+.action-btn {
+  position: relative;
+  height: 220px;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  background-color: #2C2C4E; 
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to top, rgba(15,15,26,0.95) 0%, rgba(15,15,26,0.2) 100%);
+  z-index: 1;
+  transition: background 0.3s;
+}
+
+.btn-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 25px;
+  z-index: 2;
+}
+
+.btn-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.btn-text {
+  font-size: 22px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-style: italic;
+  color: white;
+}
+
+/* ===== IMATGES DELS BOTONS (PER ORDRE) ===== */
+
+/* 1. Reservar / Gestionar */
+.buttons-grid .action-btn:nth-child(1) { 
+  background-image: url('https://etenonfitness.com/wp-content/uploads/2024/08/DSC07144-edited-scaled.jpg'); 
+}
+
+/* 2. Calendari */
+.buttons-grid .action-btn:nth-child(2) { 
+  background-image: url('https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=1468&auto=format&fit=crop'); 
+}
+
+/* 3. Rànquing / Notificacions */
+.buttons-grid .action-btn:nth-child(3) { 
+  background-image: url('https://img.freepik.com/fotos-premium/campana-notificacion-luces-neon-naranja-futuristas-brillantes-fondo-negro-renderizado-3d_989822-3802.jpg?semt=ais_hybrid&w=740&q=80'); 
+}
+
+/* 4. Perfil */
+.buttons-grid .action-btn:nth-child(4) { 
+  background-image: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop'); 
+}
+
+/* HOVER */
+.action-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+}
+.action-btn:hover::before {
+  background: linear-gradient(to top, rgba(118, 75, 162, 0.9) 0%, rgba(15,15,26,0.1) 100%);
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .home-container {
+    flex-direction: column;
+    /* En mòbil deixem que l'alçada sigui automàtica */
+    height: auto;
+  }
+  .stats-card {
+    width: 100%;
+    min-height: auto; /* Al mòbil no cal que ocupi tota l'alçada */
+    flex-direction: row;
+    justify-content: space-around;
+    padding-top: 30px; 
+    padding-bottom: 60px; 
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .stats-content {
+    flex-direction: row;
+    width: auto;
+    gap: 20px;
+    margin-bottom: 0;
+  }
+  .stat-item::after { display: none; }
+  .logout-btn { margin-top: 0; }
+  .hero-section { padding: 30px; }
+  .actions-section { padding: 30px; }
 }

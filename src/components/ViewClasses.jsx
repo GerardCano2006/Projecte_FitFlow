@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig";
 import { 
   collection, getDocs, query, orderBy, doc, updateDoc, 
-  arrayUnion, arrayRemove, getDoc, deleteDoc, addDoc // 👈 Afegit addDoc
+  arrayUnion, arrayRemove, getDoc, deleteDoc, addDoc 
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import "./ViewClasses.css"; 
@@ -16,7 +16,7 @@ function ViewClasses() {
   
   const [processing, setProcessing] = useState(false);
   const [userRole, setUserRole] = useState('client');
-  const [userName, setUserName] = useState(''); // 👈 Nou estat pel nom
+  const [userName, setUserName] = useState(''); 
   
   const navigate = useNavigate();
   const user = auth.currentUser;
@@ -39,7 +39,7 @@ function ViewClasses() {
           const data = userDoc.data();
           setMyBookings(data.bookedClasses || []);
           setUserRole(data.role || 'client');
-          setUserName(data.name || 'Usuari'); // 👈 Guardem el nom
+          setUserName(data.name || 'Usuari'); 
         }
       }
       const q = query(collection(db, "classes"), orderBy("schedule", "asc"));
@@ -52,22 +52,43 @@ function ViewClasses() {
     setLoading(false);
   };
 
-  // --- FUNCIÓ PER GUARDAR EL LOG (Rastre) ---
+  // --- LOGS ---
   const logAction = async (actionType, classItem) => {
     try {
       await addDoc(collection(db, "booking_logs"), {
-        action: actionType, // 'book' o 'cancel'
+        action: actionType, 
         classId: classItem.id,
         classTitle: classItem.title,
         trainerName: classItem.trainerName || "Instructor",
         userId: user.uid,
         userName: userName,
-        timestamp: new Date() // Data i hora actual
+        timestamp: new Date()
       });
-      console.log(`Log creat: ${actionType} - ${classItem.title}`);
     } catch (error) {
       console.error("Error creant log:", error);
     }
+  };
+
+  // --- GOOGLE CALENDAR ---
+  const addToGoogleCalendar = (classItem) => {
+    const startDate = new Date(classItem.schedule);
+    const duration = classItem.duration || 60; // minuts
+    const endDate = new Date(startDate.getTime() + duration * 60000);
+
+    const formatGoogleDate = (date) => {
+      return date.toISOString().replace(/-|:|\.\d\d\d/g, "");
+    };
+
+    const startStr = formatGoogleDate(startDate);
+    const endStr = formatGoogleDate(endDate);
+
+    const title = encodeURIComponent(`Classe de ${classItem.title} - FitFlow`);
+    const details = encodeURIComponent(`Entrenador: ${classItem.trainerName || 'FitFlow'}\nDescripció: ${classItem.description || ''}`);
+    const location = encodeURIComponent(classItem.location || 'Gimnàs FitFlow');
+
+    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startStr}/${endStr}&details=${details}&location=${location}&sf=true&output=xml`;
+
+    window.open(googleUrl, '_blank');
   };
 
   // --- ACCIONS ---
@@ -82,7 +103,6 @@ function ViewClasses() {
 
       setMyBookings([...myBookings, classItem.id]);
       
-      // Actualitzar l'estat local
       const updatedClasses = classes.map(c => {
         if (c.id === classItem.id) {
           const parts = c.participants || [];
@@ -96,10 +116,16 @@ function ViewClasses() {
         setSelectedClass(updatedSelected);
       }
       
-      // 👇 GUARDEM EL LOG DE RESERVA
       await logAction('book', classItem);
 
-      alert("Reserva confirmada!");
+      // Confirmació + Google Calendar
+      setTimeout(() => {
+        const wantCalendar = window.confirm("Reserva confirmada! ✅\nVols afegir-ho al teu Google Calendar?");
+        if (wantCalendar) {
+            addToGoogleCalendar(classItem);
+        }
+      }, 100);
+
     } catch (error) {
       console.error("Error:", error);
       alert("Error en reservar.");
@@ -131,9 +157,7 @@ function ViewClasses() {
         setSelectedClass(updatedSelected);
       }
 
-      // 👇 GUARDEM EL LOG DE CANCEL·LACIÓ
       await logAction('cancel', classItem);
-
       alert("Reserva cancel·lada.");
     } catch (error) {
       console.error("Error cancel·lant:", error);
@@ -153,7 +177,6 @@ function ViewClasses() {
   const formatDate = (iso) => new Date(iso).toLocaleDateString("ca-ES", { weekday: 'short', day: 'numeric', month: 'short' });
   const formatTime = (iso) => new Date(iso).toLocaleTimeString("ca-ES", { hour: '2-digit', minute: '2-digit' });
 
-  // --- RENDERITZAT (IDÈNTIC A L'ANTERIOR) ---
   return (
     <div className="view-classes-container">
       
@@ -184,12 +207,27 @@ function ViewClasses() {
             <p>{selectedClass.description || "Entrenament d'alta intensitat dissenyat per millorar la resistència i la força."}</p>
           </div>
 
+          {/* 👇 AQUÍ ESTÀ L'ERROR CORREGIT: Comprovació segura de tags */}
           <div className="detail-section">
             <h4>Etiquetes</h4>
             <div className="tags-container">
-               {(selectedClass.tags || ["Fitness", "Cardio"]).map((tag, i) => (
-                 <span key={i} className="tag-pill">{tag}</span>
-               ))}
+               {(() => {
+                 const rawTags = selectedClass.tags || ["Fitness", "Cardio"];
+                 let tagsArray = [];
+                 
+                 if (Array.isArray(rawTags)) {
+                   tagsArray = rawTags;
+                 } else if (typeof rawTags === 'string') {
+                   // Si és text "Ioga, Relax", ho convertim a llista
+                   tagsArray = rawTags.split(',').map(t => t.trim());
+                 } else {
+                   tagsArray = ["General"];
+                 }
+
+                 return tagsArray.map((tag, i) => (
+                   <span key={i} className="tag-pill">{tag}</span>
+                 ));
+               })()}
             </div>
           </div>
 
