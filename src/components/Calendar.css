@@ -1,11 +1,21 @@
-/* ===== CONTENIDOR PRINCIPAL (Dark Mode) ===== */
-.calendar-container {
-  min-height: 100vh;
-  background: #1A1A2E; /* Fons fosc principal */
-  color: white;
-  padding: 24px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+/* ===== LAYOUT GLOBAL (SIDEBAR + CALENDARI) ===== */
+.dashboard-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh; /* Fixem l'alçada per evitar scroll a tota la pàgina */
+  background: #1A1A2E; 
+  overflow: hidden;
+}
+
+/* Zona de la dreta (on va el calendari) */
+.calendar-content-wrapper {
+  flex: 1; /* Ocupa tot l'espai restant */
+  height: 100%;
+  overflow-y: auto; /* Scroll vertical si cal */
+  overflow-x: auto; /* Scroll horitzontal si la pantalla és petita */
+  padding: 30px;
   box-sizing: border-box;
+  position: relative;
 }
 
 /* ===== CAPÇALERA ===== */
@@ -13,18 +23,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  min-width: 800px; /* Evita que la capçalera es trenqui */
 }
 
 .calendar-header h2 {
   margin: 0;
   color: white;
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .btn-back {
-  padding: 8px 16px;
+  padding: 10px 20px;
   background-color: transparent;
   color: #c0c0e0;
   border: 1px solid #3a3a63;
@@ -45,43 +57,45 @@
   margin-top: 50px;
 }
 
-/* ===== GRID DE LA SETMANA (ARA 14 DIES) ===== */
+/* ===== GRID DE LA SETMANA (RESTAURAT ESTIL ORIGINAL) ===== */
 .week-container {
   display: grid;
-  /* 👇 MÀGIA: 7 columnes iguals. Això fa que el dia 8 baixi a la següent fila */
-  grid-template-columns: repeat(7, 1fr); 
-  gap: 10px; /* Espai entre targetes */
+  grid-template-columns: repeat(7, 1fr); /* 7 columnes */
+  gap: 15px; /* Espai entre dies */
   width: 100%;
+  
+  /* 👇 CLAU: Això assegura que el disseny NO es trenqui encara que tinguis la sidebar */
+  min-width: 1200px; 
   padding-bottom: 40px;
 }
 
-/* Quan la pantalla és molt petita (mòbil vertical), passem a 1 o 2 columnes */
-@media (max-width: 768px) {
-  .week-container {
-    grid-template-columns: repeat(1, 1fr); /* O repeat(2, 1fr) si vols dos al costat */
-  }
-}
-
-/* ===== COLUMNA DE CADA DIA ===== */
+/* ===== COLUMNA DE CADA DIA (RESTAURAT ESTIL TARGETA) ===== */
 .day-column {
-  background-color: #212135; /* Una mica més clar que el fons */
-  border-radius: 12px;
+  background-color: #212135; /* Fons fosc de la targeta */
+  border-radius: 16px;       /* Vores arrodonides */
   overflow: hidden;
-  min-height: 180px; /* Alçada mínima per uniformitat */
+  min-height: 220px;         /* Alçada mínima */
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease;
+}
+
+.day-column:hover {
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Ressaltar el dia actual */
 .day-column.today-column {
-  border: 1px solid #764ba2;
-  box-shadow: 0 0 10px rgba(118, 75, 162, 0.2);
+  border: 2px solid #764ba2;
+  box-shadow: 0 0 20px rgba(118, 75, 162, 0.3);
+  background-color: #262640;
 }
 
 .column-header {
   background-color: #27273E;
-  padding: 10px;
+  padding: 15px 10px;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -90,73 +104,97 @@
   font-size: 11px;
   text-transform: uppercase;
   color: #a0a0b0;
-  letter-spacing: 1px;
-  margin-bottom: 2px;
+  letter-spacing: 1.5px;
+  margin-bottom: 5px;
+  font-weight: 600;
 }
 
 .column-date {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 24px;
+  font-weight: 800;
   color: white;
 }
 
 .column-classes {
-  padding: 8px;
-  flex-grow: 1; /* Ocupa l'espai restant */
+  padding: 12px;
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .no-classes-day {
   text-align: center;
   color: #444;
   font-size: 20px;
-  margin-top: 20px;
+  margin-top: 40px;
 }
 
 /* ===== MINI TARGETES DE CLASSE ===== */
 .mini-class-card {
   background: #2C2C4E;
-  border-radius: 6px;
-  padding: 8px;
+  border-radius: 8px;
+  padding: 12px;
   cursor: pointer;
-  border-left: 3px solid #764ba2; /* Color per defecte */
-  transition: transform 0.2s;
+  border-left: 4px solid #764ba2; 
+  transition: all 0.2s;
   position: relative;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .mini-class-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   background: #353555;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.3);
 }
 
-/* Estil quan està reservada */
 .mini-class-card.booked {
-  border-left-color: #4ade80; /* Verd */
-  background: rgba(74, 222, 128, 0.1); /* Fons verdós molt suau */
+  border-left-color: #4ade80; 
+  background: rgba(74, 222, 128, 0.15); 
 }
 
 .mini-class-time {
-  font-size: 10px;
+  font-size: 11px;
   color: #ccc;
   font-family: monospace;
+  margin-bottom: 4px;
 }
 
 .mini-class-title {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: white;
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.4;
 }
 
 .check-icon {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  font-size: 10px;
+  top: 8px;
+  right: 8px;
+  font-size: 12px;
   color: #4ade80;
+  font-weight: bold;
+}
+
+/* RESPONSIVE: Si la pantalla és molt petita (mòbil), canviem l'estratègia */
+@media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column; /* Sidebar a dalt, calendari a sota */
+    overflow-y: auto;
+  }
+  
+  .calendar-content-wrapper {
+    padding: 15px;
+    height: auto;
+    overflow-x: visible; 
+  }
+
+  .week-container {
+    min-width: auto; /* Traiem l'amplada mínima obligatòria */
+    grid-template-columns: repeat(1, 1fr); /* 1 columna vertical */
+  }
+  
+  .calendar-header {
+    min-width: auto;
+  }
 }
