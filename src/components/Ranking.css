@@ -1,199 +1,172 @@
-/* ===== CONTENIDOR PRINCIPAL (Dark Mode) ===== */
-.ranking-container {
-  min-height: 100vh;
-  background: #1A1A2E;
-  color: white;
-  padding: 24px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-/* Loading screen (consistent) */
-.loading-screen {
+/* ===== LAYOUT GLOBAL ===== */
+.dashboard-layout {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: #1A1A2E;
-  color: white;
-  font-size: 20px;
+  width: 100vw;
+  height: 100vh;
+  background-color: #1A1A2E;
+  overflow: hidden;
 }
 
-/* ===== CAPÇALERA ===== */
-.ranking-header {
+.ranking-main-container {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  padding: 30px;
+  background: #1A1A2E;
+  color: white;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ===== NOVA CAPÇALERA AMB BOTÓ DRET ===== */
+.ranking-top-bar {
+  width: 100%;
+  max-width: 800px; /* Alineat amb la taula */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 
-.ranking-header h2 {
-  margin: 0;
-  color: white;
-  font-size: 28px;
-  font-weight: 600;
-}
+.header-text h2 { font-size: 28px; margin: 0 0 5px 0; color: white; }
+.header-text p { color: #a0a0b0; margin: 0; font-size: 14px; }
 
-/* Botó de tornar (consistent) */
-.btn-back {
-  padding: 10px 20px;
-  background-color: transparent;
+/* Botó de tancar / tornar */
+.btn-close-ranking {
+  background: transparent;
+  border: 1px solid #3a3a63;
   color: #c0c0e0;
-  border: 2px solid #3a3a63;
-  border-radius: 12px;
+  padding: 8px 16px;
+  border-radius: 20px;
   cursor: pointer;
+  font-weight: bold;
   font-size: 14px;
-  font-weight: 500;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-
-.btn-back:hover {
-  background-color: #3a3a63;
+.btn-close-ranking:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: white;
+  border-color: white;
 }
 
-.no-data {
-  color: #c0c0e0;
-  text-align: center;
-  padding: 40px;
-  font-size: 16px;
-  background: #2C2C4E;
-  border-radius: 12px;
-}
-
-/* ===== TAULA DEL RÀNQUING ===== */
-.table-wrapper {
-  /* Fons de la taula (targeta fosca) */
-  background: #2C2C4E;
-  border-radius: 16px;
-  padding: 16px;
-  overflow-x: auto; /* Per si la taula és massa ampla en mòbils */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.ranking-table {
+/* ===== PODIUM (TOP 3) ===== */
+.podium-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; 
+  gap: 20px;
+  margin-bottom: 50px;
   width: 100%;
-  border-collapse: separate; /* Permet border-radius a les files */
-  border-spacing: 0 8px; /* Espai entre files (vertical) */
+  max-width: 600px;
+  min-height: 300px;
 }
 
-/* Capçalera de la taula */
-.ranking-table th {
-  padding: 16px 20px;
-  text-align: left;
-  color: #c0c0e0; /* Color suau per la capçalera */
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  border-bottom: 2px solid #3a3a63; /* Separador */
-}
-
-/* Files de la taula */
-.ranking-table tbody tr {
-  /* Fons de fila (més fosc que el fons de la taula) */
-  background: #1f1f3d;
-  transition: all 0.2s ease-in-out;
-}
-
-.ranking-table tbody tr:hover {
-  background: #3a3a63;
-  transform: scale(1.02); /* Efecte lleuger de zoom */
-}
-
-.ranking-table td {
-  padding: 20px;
-  vertical-align: middle;
-  color: white;
-  font-size: 15px;
-  /* Vora inferior per separar (del mateix color que el fons de la taula) */
-  border-bottom: 1px solid #2C2C4E;
-  /* Per les cantonades arrodonides */
-  border-color: #2C2C4E; 
-}
-
-/* Cantonades arrodonides */
-.ranking-table td:first-child {
-  border-top-left-radius: 12px;
-  border-bottom-left-radius: 12px;
-}
-.ranking-table td:last-child {
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Estils de les cel·les */
-.rank-position {
-  width: 60px; /* Amplada fixa per la posició */
-}
-
-.rank-badge {
-  display: inline-block;
-  width: 30px;
-  height: 30px;
-  line-height: 30px;
+.podium-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  position: relative;
+  flex: 1;
+}
+
+.podium-item.gold { width: 35%; z-index: 2; } 
+.podium-item.silver { width: 30%; }
+.podium-item.bronze { width: 30%; }
+
+/* Avatars */
+.avatar-circle {
+  width: 60px; height: 60px;
   border-radius: 50%;
-  background: #3a3a63; /* Fons genèric de la medalla */
-  color: white;
-  font-weight: 600;
+  background: #3a3a63;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  border: 3px solid transparent;
+  margin-bottom: 10px;
+  font-weight: bold; font-size: 20px;
+}
+.avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Detalls Text */
+.podium-name { font-weight: bold; font-size: 14px; margin-bottom: 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; }
+.podium-points { font-size: 12px; color: #ccc; margin-bottom: 10px; font-weight: bold;}
+
+/* Barres de color */
+.podium-bar {
+  width: 100%;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
-.rank-name {
-  font-weight: 500;
-  color: white;
+/* --- OR, PLATA, BRONZE --- */
+.gold .avatar-circle { border-color: #FFD700; width: 80px; height: 80px; font-size: 28px; }
+.gold .podium-name { color: #FFD700; font-size: 18px; }
+.gold .podium-bar { 
+  height: 140px; 
+  background: linear-gradient(to top, #FFD700 0%, #FDB931 100%); 
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+.crown-icon { font-size: 24px; position: absolute; top: -30px; animation: float 2s infinite ease-in-out; }
+
+.silver .avatar-circle { border-color: #C0C0C0; }
+.silver .podium-name { color: #C0C0C0; }
+.silver .podium-bar { height: 100px; background: linear-gradient(to top, #C0C0C0 0%, #E0E0E0 100%); }
+.silver .podium-rank { font-size: 20px; color: #C0C0C0; font-weight: bold; margin-bottom: 5px; }
+
+.bronze .avatar-circle { border-color: #CD7F32; }
+.bronze .podium-name { color: #CD7F32; }
+.bronze .podium-bar { height: 70px; background: linear-gradient(to top, #CD7F32 0%, #df9f64 100%); }
+.bronze .podium-rank { font-size: 20px; color: #CD7F32; font-weight: bold; margin-bottom: 5px; }
+
+
+/* ===== LLISTA DE LA RESTA ===== */
+.ranking-list-section {
+  width: 100%;
+  max-width: 800px;
+  background: #212135;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,0.05);
+  /* Espai extra al final perquè no talli l'scroll */
+  margin-bottom: 50px; 
 }
 
-.rank-points {
-  font-weight: 700;
-  color: #667eea; /* Color d'accent per als punts */
-  font-size: 16px;
-  text-align: right;
-  width: 100px;
+.ranking-table { width: 100%; border-collapse: collapse; }
+.ranking-table th { text-align: left; color: #a0a0b0; font-size: 12px; padding-bottom: 15px; text-transform: uppercase; }
+.ranking-table td { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.ranking-table tr:last-child td { border-bottom: none; }
+
+.rank-number { font-weight: bold; color: #666; }
+
+.user-cell { display: flex; align-items: center; gap: 12px; }
+.mini-avatar {
+  width: 30px; height: 30px;
+  background: #3a3a63;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: bold; color: #c0c0e0;
 }
 
-/* ===== MEDALLES TOP 3 ===== */
-/* Estils per les medalles del Top 3 */
+.points-cell { text-align: right; font-weight: bold; color: #667eea; }
+.text-right { text-align: right; }
 
-/* Or (1r) */
-.ranking-table .gold .rank-badge {
-  background: linear-gradient(135deg, #ffd700, #f6ad55);
-  color: #1a202c;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
-}
-.ranking-table .gold .rank-name,
-.ranking-table .gold .rank-points {
-  font-weight: 700;
-  color: #ffd700; /* Text daurat */
-}
-.ranking-table .gold:hover {
-  background: #4a3c00;
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
 }
 
-/* Plata (2n) */
-.ranking-table .silver .rank-badge {
-  background: linear-gradient(135deg, #e0e0e0, #a0aec0);
-  color: #1a202c;
-  box-shadow: 0 0 10px rgba(203, 213, 224, 0.6);
-}
-.ranking-table .silver .rank-name,
-.ranking-table .silver .rank-points {
-  color: #e0e0e0; /* Text platejat */
-}
-.ranking-table .silver:hover {
-  background: #3a414b;
-}
-
-/* Bronze (3r) */
-.ranking-table .bronze .rank-badge {
-  background: linear-gradient(135deg, #cd7f32, #dd6b20);
-  color: white;
-  box-shadow: 0 0 10px rgba(205, 127, 50, 0.6);
-}
-.ranking-table .bronze .rank-name,
-.ranking-table .bronze .rank-points {
-  color: #dd6b20; /* Text bronze */
-}
-.ranking-table .bronze:hover {
-  background: #442a15;
+/* Mòbil */
+@media (max-width: 600px) {
+  .podium-container { align-items: flex-end; gap: 5px; }
+  .gold .avatar-circle { width: 60px; height: 60px; font-size: 20px; }
+  .avatar-circle { width: 40px; height: 40px; font-size: 14px; }
+  .podium-name { font-size: 11px; }
+  .ranking-top-bar { flex-direction: row; }
 }

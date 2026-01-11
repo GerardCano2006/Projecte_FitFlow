@@ -5,7 +5,7 @@
   color: white;
   padding: 24px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  max-width: 900px; /* Mantenim el max-width de l'original */
+  max-width: 800px;
   margin: 0 auto;
 }
 
@@ -21,166 +21,137 @@
   margin: 0;
   color: white;
   font-size: 28px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-/* Botó de tornar (estil ghost) */
+.trainer-welcome {
+  margin-bottom: 20px;
+  color: #a0a0b0;
+  font-size: 14px;
+}
+.trainer-welcome strong {
+  color: #667eea;
+}
+
+/* Botó Tornar */
 .btn-back {
-  padding: 10px 20px;
+  padding: 8px 16px;
   background-color: transparent;
   color: #c0c0e0;
-  border: 2px solid #3a3a63;
-  border-radius: 12px;
+  border: 1px solid #3a3a63;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
   transition: all 0.2s;
 }
-
 .btn-back:hover {
   background-color: #3a3a63;
   color: white;
 }
 
-/* Botó principal (Crear Classe) */
-.btn-new-class {
+/* ===== BOTÓ NOVA CLASSE ===== */
+.btn-create {
   width: 100%;
-  padding: 16px;
-  margin-bottom: 24px;
+  padding: 15px;
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
+  font-size: 16px;
+  font-weight: 600;
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  box-shadow: 0 5px 20px rgba(118, 75, 162, 0.4);
-  transition: all 0.2s ease-in-out;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: transform 0.2s;
 }
 
-.btn-new-class:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(118, 75, 162, 0.5);
+.btn-create:hover {
+  transform: translateY(-2px);
 }
 
-/* ===== FORMULARI (Fons de targeta) ===== */
+/* ===== FORMULARI ===== */
 .class-form {
-  background: #2C2C4E;
+  background: #27273E;
   padding: 24px;
   border-radius: 16px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.class-form h3 {
-  color: white;
-  text-align: center;
-  margin-top: 0;
-  margin-bottom: 24px;
-  font-size: 20px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-/* Adaptació del grid a mòbil */
-@media (max-width: 600px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
+  margin-bottom: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .form-group {
   margin-bottom: 16px;
 }
 
-.form-group label {
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+.form-row .form-group {
+  flex: 1;
+}
+
+label {
   display: block;
   margin-bottom: 8px;
-  color: #c0c0e0; /* Color suau per a labels */
+  color: #c0c0e0;
   font-size: 14px;
   font-weight: 500;
 }
 
-.class-form input[type="text"],
-.class-form input[type="number"],
-.class-form input[type="datetime-local"],
-.class-form textarea,
-.class-form select {
+input, textarea, select {
   width: 100%;
-  padding: 12px 14px;
-  background: #1f1f3d; /* Fons d'input més fosc */
-  border: 2px solid #3a3a63;
+  padding: 12px;
+  background: #1A1A2E;
+  border: 1px solid #3a3a63;
   border-radius: 8px;
   color: white;
   font-size: 15px;
-  font-family: inherit;
-  transition: all 0.2s;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
 }
 
-.class-form input:focus,
-.class-form textarea:focus,
-.class-form select:focus {
+input:focus, textarea:focus {
+  border-color: #667eea;
   outline: none;
-  border-color: #667eea; /* Color d'accent al fer focus */
-  background: #2C2C4E;
 }
 
-.class-form textarea {
-  resize: vertical;
-  min-height: 80px;
+/* Estil especial pel camp de punts */
+.points-input-group input {
+  border-color: #FFD700;
+  color: #FFD700;
+  font-weight: bold;
 }
 
-.hint {
-  display: block;
-  margin-top: 6px;
-  color: #7a7a9e;
-  font-size: 12px;
-  font-style: italic;
-}
-
-/* Botó dins del formulari */
 .btn-submit {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: #28a745;
   color: white;
   border: none;
-  border-radius: 10px;
-  cursor: pointer;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 600;
+  cursor: pointer;
   margin-top: 10px;
-  transition: opacity 0.2s;
 }
-
 .btn-submit:hover {
-  opacity: 0.9;
+  background: #218838;
 }
-
 
 /* ===== LLISTA DE CLASSES ===== */
 .classes-list h3 {
   color: white;
   margin-bottom: 20px;
-  font-size: 22px;
-  border-bottom: 2px solid #3a3a63;
+  border-bottom: 1px solid #3a3a63;
   padding-bottom: 10px;
 }
 
 .no-classes {
-  color: #c0c0e0;
+  color: #777;
   text-align: center;
-  padding: 30px;
-  font-size: 16px;
-  background: #2C2C4E;
-  border-radius: 12px;
+  margin-top: 30px;
 }
 
-/* Targeta de cada classe */
 .class-item {
   background: #2C2C4E;
   padding: 20px;
@@ -188,13 +159,31 @@
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   border-left: 5px solid #667eea;
+  position: relative;
+}
+
+.class-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
 }
 
 .class-item h4 {
-  margin: 0 0 10px 0;
+  margin: 0;
   color: white;
   font-size: 18px;
   font-weight: 600;
+}
+
+.points-badge {
+  background: rgba(255, 215, 0, 0.15);
+  color: #FFD700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid rgba(255, 215, 0, 0.3);
 }
 
 .class-desc {
@@ -206,67 +195,40 @@
 
 .class-details {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   font-size: 13px;
-  color: #c0c0e0;
+  color: #a0a0b0;
   border-top: 1px solid #3a3a63;
   padding-top: 16px;
+  margin-bottom: 16px;
 }
 
-.class-details span {
-  display: block;
-}
-
-.class-details span strong {
-  color: white;
-  font-weight: 500;
-}
-
-/* Botons d'acció (Editar / Eliminar) */
 .class-actions {
-  margin-top: 20px;
   display: flex;
   gap: 10px;
+  justify-content: flex-end;
 }
 
-.btn-edit,
-.btn-delete {
+.btn-edit, .btn-delete {
   padding: 8px 16px;
-  border: 2px solid;
-  border-radius: 8px;
+  border-radius: 6px;
+  border: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  background: transparent;
-  transition: all 0.2s;
 }
 
 .btn-edit {
-  border-color: #667eea;
-  color: #667eea;
-}
-.btn-edit:hover {
-  background: #667eea;
+  background: #4a4a6a;
   color: white;
 }
+.btn-edit:hover { background: #5a5a7a; }
 
 .btn-delete {
-  border-color: #ff6b6b;
+  background: rgba(255, 71, 87, 0.1);
   color: #ff6b6b;
 }
 .btn-delete:hover {
-  background: #ff6b6b;
-  color: white;
-}
-
-/* Loading screen (per si de cas) */
-.loading-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: #1A1A2E;
-  color: white;
-  font-size: 20px;
+  background: rgba(255, 71, 87, 0.2);
 }
