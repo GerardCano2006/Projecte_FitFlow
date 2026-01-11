@@ -1,0 +1,198 @@
+/* ===== LAYOUT AMB SIDEBAR ===== */
+.dashboard-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background-color: #1A1A2E;
+  overflow: hidden;
+}
+
+.shop-container {
+  flex: 1; /* Ocupa la resta d'espai */
+  height: 100%;
+  overflow-y: auto; /* Scroll vertical */
+  background-color: #0f0f1a;
+  color: white;
+  padding: 40px;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
+}
+
+.shop-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #0f0f1a;
+  color: #888;
+  font-size: 20px;
+}
+
+/* ===== HEADER ===== */
+.shop-header {
+  display: flex;
+  /* 👇 Alinea el contingut (el botó) a la dreta del tot */
+  justify-content: flex-end; 
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid #3a3a63;
+  color: #aaa;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+  font-size: 14px;
+}
+.back-btn:hover {
+  background: #3a3a63;
+  color: white;
+  border-color: #fff;
+}
+
+/* ===== TÍTOL ===== */
+.shop-title { text-align: center; margin-bottom: 50px; }
+.shop-title h1 {
+  font-size: 48px;
+  margin: 0;
+  background: linear-gradient(90deg, #fff, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+  font-style: italic;
+}
+.shop-title p { color: #888; margin-top: 10px; }
+
+/* ===== GRID PRODUCTES ===== */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto 80px auto;
+}
+
+.product-card {
+  background: #1A1A2E;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.product-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border-color: #764ba2;
+}
+
+.product-image {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+.product-image::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; width: 100%; height: 50px;
+  background: linear-gradient(to top, #1A1A2E, transparent);
+}
+
+.product-info { padding: 20px; }
+.product-info h3 { margin: 0 0 10px 0; font-size: 22px; }
+.product-desc { color: #aaa; font-size: 14px; margin-bottom: 20px; height: 40px; }
+
+.product-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.price-tag {
+  color: #FFD700;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.buy-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+.buy-btn:hover { filter: brightness(1.2); }
+.buy-btn:disabled {
+  background: #333;
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* ===== INVENTARI ===== */
+.inventory-section {
+  max-width: 800px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 30px;
+  border-radius: 20px;
+  margin-bottom: 50px; 
+}
+.inventory-section h2 { margin-top: 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+.empty-msg { color: #666; font-style: italic; text-align: center; }
+
+.inventory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.inventory-item {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 10px;
+}
+.inventory-item img {
+  width: 50px; height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 15px;
+}
+.inventory-item h4 { margin: 0; color: #ddd; }
+.inventory-item span { font-size: 12px; color: #4cd137; }
+
+/* ===== FEEDBACK TOAST ===== */
+.feedback-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-weight: bold;
+  z-index: 1000;
+  animation: slideDown 0.5s ease;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+}
+.feedback-toast.success { background: #4cd137; color: #000; }
+.feedback-toast.error { background: #ff4757; color: #fff; }
+
+@keyframes slideDown {
+  from { top: -50px; opacity: 0; }
+  to { top: 20px; opacity: 1; }
+}
+
+@media (max-width: 600px) {
+  .shop-container { padding: 20px; }
+  .products-grid { grid-template-columns: 1fr; }
+  .shop-title h1 { font-size: 32px; }
+}

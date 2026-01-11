@@ -176,7 +176,7 @@ function ManageClasses() {
     <div className="manage-container">
       <div className="manage-header">
         <h2>Gestió de Classes 🛠️</h2>
-        <button className="btn-back" onClick={() => navigate("/home")}>⬅ Tornar</button>
+        <button className="btn-back" onClick={() => navigate("/home")}>Tornar</button>
       </div>
 
       <div className="trainer-welcome">

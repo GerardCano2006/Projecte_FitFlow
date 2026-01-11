@@ -11,6 +11,7 @@ import Profile from "./components/Profile";
 import StravaRedirect from "./components/StravaRedirect";
 import EditProfile from './components/EditProfile';
 import TrainerNotifications from "./components/TrainerNotifications";
+import Shop from "./components/Shop";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/strava-redirect" element={<StravaRedirect />} />
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/notifications" element={<TrainerNotifications />} />
+        <Route path="/shop" element={<Shop />} />
       </Routes>
     </Router>
   );

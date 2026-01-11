@@ -175,11 +175,24 @@ body, html {
   padding-left: 15px;
 }
 
+/* GRID PER DEFECTE (Entrenadors, etc) */
 .buttons-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
   gap: 25px;
   padding-bottom: 40px;
+}
+
+/* GRID ESPECÍFIC PER A CLIENTS (5 Botons) */
+.client-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnes fixes */
+  gap: 25px;
+}
+
+/* El botó de RESERVAR (el primer) ocupa 2 espais d'ample */
+.client-grid .action-btn:first-child {
+  grid-column: span 2; 
 }
 
 /* ESTIL TARGETES */
@@ -232,7 +245,7 @@ body, html {
 
 /* ===== IMATGES DELS BOTONS (PER ORDRE) ===== */
 
-/* 1. Reservar / Gestionar */
+/* 1. Reservar (Clients) / Gestionar (Trainer) */
 .buttons-grid .action-btn:nth-child(1) { 
   background-image: url('https://etenonfitness.com/wp-content/uploads/2024/08/DSC07144-edited-scaled.jpg'); 
 }
@@ -242,13 +255,20 @@ body, html {
   background-image: url('https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=1468&auto=format&fit=crop'); 
 }
 
-/* 3. Rànquing / Notificacions */
+/* 3. Rànquing (Client) / Notificacions (Trainer) */
 .buttons-grid .action-btn:nth-child(3) { 
   background-image: url('https://estaticos.elcolombiano.com/documents/10157/0/843x565/32c0/780d565/none/11101/HLAH/image_content_27980541_20170206081255.jpg'); 
 }
 
-/* 4. Perfil */
+/* 4. NOU: Bescanviar Punts (Client) / Perfil (Trainer) */
 .buttons-grid .action-btn:nth-child(4) { 
+  /* Imatge de material esportiu (p. ex: ampolla aigua, tovallola) */
+  background-image: url('https://i.pinimg.com/736x/f3/62/aa/f362aa219ec23ee84341891fc4b598cc.jpg'); 
+}
+
+/* 5. Perfil (Clients) */
+.buttons-grid .action-btn:nth-child(5) { 
+  /* Imatge de perfil */
   background-image: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop'); 
 }
 
@@ -262,6 +282,12 @@ body, html {
 }
 
 /* RESPONSIVE */
+@media (max-width: 1000px) {
+  /* En tablets, passem a 2 columnes */
+  .client-grid { grid-template-columns: repeat(2, 1fr); }
+  .client-grid .action-btn:first-child { grid-column: span 2; }
+}
+
 @media (max-width: 900px) {
   .home-container {
     flex-direction: column;
@@ -288,4 +314,8 @@ body, html {
   .logout-btn { margin-top: 0; }
   .hero-section { padding: 30px; }
   .actions-section { padding: 30px; }
+
+  /* Mòbil: Tot a 1 columna */
+  .client-grid { grid-template-columns: 1fr; }
+  .client-grid .action-btn:first-child { grid-column: span 1; }
 }

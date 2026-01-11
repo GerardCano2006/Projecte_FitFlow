@@ -131,7 +131,7 @@ function Home() {
           {userData?.role === "entrenador" ? (
              <div className="buttons-grid trainer-grid">
                
-               {/* 1. Gestionar Classes (Posició 1 al CSS: Imatge Peses) */}
+               {/* 1. Gestionar Classes */}
                <button className="action-btn btn-manage" onClick={() => navigate("/manage-classes")}>
                   <div className="btn-content">
                     <span className="btn-icon"></span>
@@ -139,7 +139,7 @@ function Home() {
                   </div>
                </button>
 
-               {/* 2. Calendari (Posició 2 al CSS: Imatge Agenda) - AFEGIT */}
+               {/* 2. Calendari */}
                <button className="action-btn btn-calendar" onClick={() => navigate("/calendar")}>
                   <div className="btn-content">
                     <span className="btn-icon"></span>
@@ -147,7 +147,7 @@ function Home() {
                   </div>
                </button>
 
-               {/* 3. Notificacions (Posició 3 al CSS: Imatge Ciclisme) */}
+               {/* 3. Notificacions */}
                <button className="action-btn btn-notify" onClick={() => navigate("/notifications")}>
                   <div className="btn-content">
                     <span className="btn-icon"></span>
@@ -155,7 +155,7 @@ function Home() {
                   </div>
                </button>
                
-               {/* 4. Perfil (Posició 4 al CSS: Imatge Persona) */}
+               {/* 4. Perfil */}
                <button className="action-btn btn-profile" onClick={() => navigate("/profile")}>
                   <div className="btn-content">
                     <span className="btn-icon"></span>
@@ -167,6 +167,7 @@ function Home() {
           ) : (
             <div className="buttons-grid client-grid">
               
+              {/* 1. RESERVAR CLASSE */}
               <button className="action-btn btn-reserve" onClick={() => navigate("/classes")}>
                 <div className="btn-content">
                   <span className="btn-icon"></span>
@@ -174,22 +175,33 @@ function Home() {
                 </div>
               </button>
 
+              {/* 2. CALENDARI */}
               <button className="action-btn btn-calendar" onClick={() => navigate("/calendar")}>
-                 <div className="btn-content">
+                  <div className="btn-content">
                   <span className="btn-icon"></span>
                   <span className="btn-text">EL MEU CALENDARI</span>
                 </div>
               </button>
 
+              {/* 3. RÀNQUING */}
               <button className="action-btn btn-ranking" onClick={() => navigate("/ranking")}>
-                 <div className="btn-content">
+                  <div className="btn-content">
                   <span className="btn-icon"></span>
                   <span className="btn-text">RÀNQUING</span>
                 </div>
               </button>
 
+              {/* 4. NOU: BESCANVIAR PUNTS (SHOP) */}
+              <button className="action-btn btn-shop" onClick={() => navigate("/shop")}>
+                  <div className="btn-content">
+                  <span className="btn-icon"></span>
+                  <span className="btn-text"> Viti Shop</span>
+                </div>
+              </button>
+
+              {/* 5. PERFIL (Ara és l'últim) */}
               <button className="action-btn btn-profile" onClick={() => navigate("/profile")}>
-                 <div className="btn-content">
+                  <div className="btn-content">
                   <span className="btn-icon"></span>
                   <span className="btn-text">EL MEU PERFIL</span>
                 </div>

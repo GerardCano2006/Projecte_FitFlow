@@ -55,7 +55,7 @@ const Ranking = () => {
            </div>
            
            <button className="btn-close-ranking" onClick={() => navigate('/home')}>
-             ✕ Tornar
+            Tornar
            </button>
         </div>
 
