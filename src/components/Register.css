@@ -120,10 +120,10 @@
   font-size: 14px;
 }
 
-/* Botó d'enviament */
-.btn-submit {
+/* Botó d'enviament */.btn-submit-register {
   width: 100%;
   padding: 16px;
+  /* El degradat lila que volem: */
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   border: none;
@@ -134,15 +134,15 @@
   margin-top: 10px;
   transition: all 0.2s ease-in-out;
   box-shadow: 0 5px 20px rgba(118, 75, 162, 0.4);
-  box-sizing: border-box; /* 6. Afegim a tot per seguretat */
+  box-sizing: border-box;
 }
 
-.btn-submit:hover {
+.btn-submit-register:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(118, 75, 162, 0.5);
 }
 
-.btn-submit:disabled {
+.btn-submit-register:disabled {
   background: #3a3a63;
   opacity: 0.7;
   cursor: not-allowed;

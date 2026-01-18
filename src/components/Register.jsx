@@ -109,7 +109,7 @@ function Register() {
 
             {error && <div className="error-alert">{error}</div>}
 
-            <button type="submit" className="btn-submit" disabled={loading}>
+            <button type="submit" className="btn-submit-register" disabled={loading}>
               {loading ? "Registrant..." : "Crear Compte"}
             </button>
           </form>
