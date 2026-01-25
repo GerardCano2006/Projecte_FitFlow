@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig"; 
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+// 👇 AFEGIT: 'query' i 'where' per poder filtrar les classes
+import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import "./Home.css";
 
-// JA NO CAL IMPORTAR LA IMATGE AQUÍ SI LA POSES A 'PUBLIC'
-
 function Home() {
   const [userData, setUserData] = useState(null);
   const [userRank, setUserRank] = useState("-");
+  // 👇 NOU ESTAT: Per guardar el número real de classes
+  const [classesCount, setClassesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // 👇 CÀRREGA DE DADES I CÀLCUL DE RÀNQUING
+  // 👇 CÀRREGA DE DADES, CÀLCUL DE RÀNQUING I COMPTADOR DE CLASSES
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -31,7 +32,13 @@ function Home() {
           setUserData(docSnap.data());
         }
 
-        // 2. Carreguem TOTS els usuaris per calcular el rànquing
+        // 2. 🔥 CÀLCUL REAL DE CLASSES APUNTADES (Igual que a la Sidebar)
+        const classesRef = collection(db, "classes");
+        const q = query(classesRef, where("participants", "array-contains", user.uid));
+        const classSnap = await getDocs(q);
+        setClassesCount(classSnap.size); // Guardem el número real
+
+        // 3. Carreguem TOTS els usuaris per calcular el rànquing
         const usersRef = collection(db, "users");
         const usersSnap = await getDocs(usersRef);
 
@@ -81,7 +88,6 @@ function Home() {
       {/* ===== BARRA LATERAL (STATS + LOGOUT) ===== */}
       <div className="stats-card">
         
-        {/* 👇 AFEGIT: LOGO FITFLOW DES DE LA CARPETA PUBLIC */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '70px', paddingTop: '0px' }}>
             <img 
                 src="/Logo.png"  
@@ -92,7 +98,8 @@ function Home() {
 
         <div className="stats-content">
           <div className="stat-item">
-            <span className="stat-value">{userData?.classesAttended || 0}</span>
+            {/* 👇 ARA MOSTREM EL COMPTADOR REAL (classesCount) */}
+            <span className="stat-value">{classesCount}</span>
             <span className="stat-label">Classes</span>
           </div>
           <div className="stat-item">

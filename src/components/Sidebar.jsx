@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebaseConfig"; 
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+// 👇 AFEGIT: 'query' i 'where' per poder filtrar les classes
+import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import "./Home.css"; // Aprofitem els estils que ja tens fets!
+import "./Home.css"; 
 
 function Sidebar() {
   const [userData, setUserData] = useState(null);
   const [userRank, setUserRank] = useState("-");
+  // 👇 NOU ESTAT: Per guardar el número real de classes
+  const [classesCount, setClassesCount] = useState(0);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,12 +20,21 @@ function Sidebar() {
       if (!user) return;
 
       try {
-        // 1. Dades de l'usuari
+        // 1. Dades de l'usuari (Punts, Nom, etc.)
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) setUserData(docSnap.data());
 
-        // 2. Càlcul ràpid del rànquing
+        // 2. 🔥 CÀLCUL REAL DE CLASSES APUNTADES
+        // Busquem a la col·lecció 'classes' totes les que tinguin el teu ID a 'participants'
+        const classesRef = collection(db, "classes");
+        const q = query(classesRef, where("participants", "array-contains", user.uid));
+        const classSnap = await getDocs(q);
+        
+        // Guardem la quantitat trobada (.size ens diu quants documents hi ha)
+        setClassesCount(classSnap.size);
+
+        // 3. Càlcul ràpid del rànquing
         const usersRef = collection(db, "users");
         const usersSnap = await getDocs(usersRef);
         const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -54,7 +67,8 @@ function Sidebar() {
 
       <div className="stats-content">
         <div className="stat-item">
-          <span className="stat-value">{userData?.classesAttended || 0}</span>
+          {/* 👇 AQUÍ MOSTREM EL COMPTADOR REAL */}
+          <span className="stat-value">{classesCount}</span>
           <span className="stat-label">Classes</span>
         </div>
         <div className="stat-item">
