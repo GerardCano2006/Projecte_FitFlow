@@ -7,7 +7,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 const styles = {
   container: {
     padding: '40px',
-    maxWidth: '600px', // Més estret que el perfil, queda millor per formularis
+    maxWidth: '600px',
     margin: '30px auto',
     backgroundColor: '#1E1E2E',
     color: '#E0E0E0',
@@ -41,12 +41,12 @@ const styles = {
     borderRadius: '5px',
     color: '#FFFFFF',
     fontSize: '1em',
-    boxSizing: 'border-box' // Important perquè el padding no trenqui l'amplada
+    boxSizing: 'border-box'
   },
   inputDisabled: {
     width: '100%',
     padding: '12px',
-    backgroundColor: '#1A1A2A', // Més fosc per indicar desactivat
+    backgroundColor: '#1A1A2A',
     border: '1px solid #2E2E3E',
     borderRadius: '5px',
     color: '#606070',
@@ -59,17 +59,19 @@ const styles = {
     gap: '15px',
     marginTop: '30px'
   },
+  // 👇 AQUÍ ESTÀ EL CANVI: Gradient Violeta
   saveButton: {
     flex: 1,
-    backgroundColor: '#70E094', // Verd per guardar
-    color: '#1E1E2E',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Gradient Violeta
+    color: 'white', // Text blanc (abans era fosc)
     border: 'none',
     padding: '12px',
     borderRadius: '5px',
     cursor: 'pointer',
     fontSize: '1em',
     fontWeight: 'bold',
-    textAlign: 'center'
+    textAlign: 'center',
+    boxShadow: '0 4px 15px rgba(118, 75, 162, 0.4)' // Afegit una mica de "brillo"
   },
   cancelButton: {
     flex: 1,
@@ -87,7 +89,7 @@ const styles = {
 
 function EditProfile() {
   const [name, setName] = useState('');
-  const [email, setEmail] = useState(''); // L'email no el deixarem editar fàcilment
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -101,7 +103,7 @@ function EditProfile() {
         if (userDoc.exists()) {
           const data = userDoc.data();
           setName(data.name || '');
-          setEmail(user.email || ''); // L'email ve de Auth
+          setEmail(user.email || '');
         }
         setLoading(false);
       } else {
@@ -113,17 +115,15 @@ function EditProfile() {
 
   // 2. Funció per guardar els canvis
   const handleSave = async (e) => {
-    e.preventDefault(); // Evita que es recarregui la pàgina
+    e.preventDefault();
     setSaving(true);
 
     try {
       const user = auth.currentUser;
       if (user) {
-        // Actualitzem només el nom a Firestore
         await updateDoc(doc(db, 'users', user.uid), {
           name: name
         });
-        // Tornem al perfil
         navigate('/profile');
       }
     } catch (error) {
@@ -157,7 +157,7 @@ function EditProfile() {
           />
         </div>
 
-        {/* Camp Email (Desactivat / Només lectura) */}
+        {/* Camp Email (Desactivat) */}
         <div style={styles.formGroup}>
           <label style={styles.label}>Correu Electrònic (No editable)</label>
           <input 
@@ -172,7 +172,7 @@ function EditProfile() {
         <div style={styles.buttonGroup}>
           <button 
             type="button" 
-            onClick={() => navigate('/profile')} // Torna enrere sense guardar
+            onClick={() => navigate('/profile')}
             style={styles.cancelButton}
           >
             Cancel·lar
